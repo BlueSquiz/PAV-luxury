@@ -14,7 +14,12 @@
 --border:rgba(245,210,122,.25);
 }
 
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
 
 body{
 background:
@@ -83,9 +88,12 @@ padding:22px;
 margin-bottom:22px;
 }
 
-h3{margin-bottom:14px;color:var(--gold);}
+h3{
+margin-bottom:14px;
+color:var(--gold);
+}
 
-.button{
+button.button{
 display:inline-block;
 padding:10px 20px;
 border-radius:30px;
@@ -95,9 +103,13 @@ color:#000;
 font-weight:600;
 cursor:pointer;
 transition:.3s;
+border:none;
+outline:none;
 }
 
-.button:hover{transform:translateY(-2px)}
+button.button:hover{
+transform:translateY(-2px);
+}
 
 input{
 width:100%;
@@ -108,9 +120,6 @@ background:rgba(0,0,0,.6);
 border:1px solid var(--border);
 color:#fff;
 }
-
-.status.online{color:var(--green)}
-.status.offline{color:var(--red)}
 
 /* TABBAR */
 .tabbar{
@@ -147,7 +156,9 @@ grid-template-columns:1fr 1fr;
 gap:12px;
 }
 
-.camBox{position:relative;}
+.camBox{
+position:relative;
+}
 
 iframe{
 width:100%;
@@ -212,8 +223,8 @@ animation:pulseGlow 1.5s infinite;
 <div class="card" id="alarmCard">
 <h3>Alarm</h3>
 <div>Status: <span id="alarmStatus">ROZBROJONY</span></div>
-<div class="button" onclick="arm()">Uzbrój</div>
-<div class="button" onclick="disarm()">Rozbrój</div>
+<button type="button" class="button" onclick="arm()">Uzbrój</button>
+<button type="button" class="button" onclick="disarm()">Rozbrój</button>
 </div>
 </div>
 
@@ -223,7 +234,7 @@ animation:pulseGlow 1.5s infinite;
 <h3>Dodaj światło (IP)</h3>
 <input id="lightName" placeholder="Nazwa">
 <input id="lightIP" placeholder="IP np. 192.168.1.50">
-<div class="button" onclick="addLight()">Dodaj</div>
+<button type="button" class="button" onclick="addLight()">Dodaj</button>
 </div>
 <div id="lightsList"></div>
 </div>
@@ -238,7 +249,7 @@ animation:pulseGlow 1.5s infinite;
 <input id="cam3url" placeholder="URL kamera 3">
 <input id="cam4url" placeholder="URL kamera 4">
 
-<div class="button" onclick="saveCams()">Zapisz</div>
+<button type="button" class="button" onclick="saveCams()">Zapisz</button>
 
 <div class="grid">
 <div class="camBox">
@@ -300,8 +311,16 @@ alarmCard.classList.remove("pulse");
 }
 }
 
-function arm(){localStorage.setItem("alarmState","armed");renderAlarm();}
-function disarm(){localStorage.setItem("alarmState","disarmed");renderAlarm();}
+function arm(){
+localStorage.setItem("alarmState","armed");
+renderAlarm();
+}
+
+function disarm(){
+localStorage.setItem("alarmState","disarmed");
+renderAlarm();
+}
+
 renderAlarm();
 
 /* OŚWIETLENIE */
@@ -324,28 +343,16 @@ let div=document.createElement("div");
 div.className="card";
 div.innerHTML=`
 <h3>${l.name}</h3>
-<div id="lightStatus-${l.id}" class="status">Sprawdzanie...</div>
-<div class="button" onclick="toggleLight('${l.ip}','On')">ON</div>
-<div class="button" onclick="toggleLight('${l.ip}','Off')">OFF</div>
+<div id="lightStatus-${l.id}">Sprawdzanie...</div>
+<button type="button" class="button" onclick="toggleLight('${l.ip}','On')">ON</button>
+<button type="button" class="button" onclick="toggleLight('${l.ip}','Off')">OFF</button>
 `;
 box.appendChild(div);
-checkLight(l);
 });
 }
 
-async function checkLight(l){
-try{
-await fetch(`http://${l.ip}/cm?cmnd=Power`);
-document.getElementById("lightStatus-"+l.id).innerText="ONLINE";
-document.getElementById("lightStatus-"+l.id).className="status online";
-}catch{
-document.getElementById("lightStatus-"+l.id).innerText="OFFLINE";
-document.getElementById("lightStatus-"+l.id).className="status offline";
-}
-}
-
 function toggleLight(ip,state){
-fetch(`http://${ip}/cm?cmnd=Power%20${state}`);
+fetch(\`http://\${ip}/cm?cmnd=Power%20\${state}\`);
 }
 
 renderLights();
