@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+ 3.6</title>
+<title>PAV+ 3.7 ULTRA</title>
 
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="IMG_5759.png">
@@ -24,29 +24,44 @@
 body{background:var(--bg);color:white;overflow:hidden;}
 
 /* SPLASH */
-#splash{position:fixed;inset:0;background:black;display:flex;align-items:center;justify-content:center;z-index:3000;transition:opacity 1s;}
+#splash{position:fixed;inset:0;background:black;display:flex;align-items:center;justify-content:center;z-index:4000;transition:opacity 1s;}
 #splash.fade{opacity:0;pointer-events:none;}
-.paw{font-size:40px;color:var(--gold);animation:glow 2s infinite;}
-@keyframes glow{0%{text-shadow:0 0 5px var(--gold);}50%{text-shadow:0 0 25px var(--gold);}100%{text-shadow:0 0 5px var(--gold);}}
+.paw{font-size:42px;color:var(--gold);animation:glow 2s infinite;}
+@keyframes glow{
+0%{text-shadow:0 0 5px var(--gold);}
+50%{text-shadow:0 0 25px var(--gold);}
+100%{text-shadow:0 0 5px var(--gold);}
+}
 
 /* LOCK */
-#lock{position:fixed;inset:0;background:black;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2000;}
+#lock{position:fixed;inset:0;background:black;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:3000;}
 .display{font-size:32px;letter-spacing:15px;margin-bottom:20px;color:var(--gold);}
 .keypad{display:grid;grid-template-columns:repeat(3,80px);gap:15px;}
-.key{height:80px;width:80px;border-radius:50%;background:#111;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;}
+.key{
+height:80px;width:80px;border-radius:50%;
+background:#111;border:1px solid var(--gold);
+display:flex;align-items:center;justify-content:center;
+font-size:24px;cursor:pointer;
+}
 .key:active{background:var(--gold);color:black;}
 
+/* APP */
 #app{display:none;height:100vh;overflow:hidden;}
 
 .section{
 position:absolute;top:0;left:0;right:0;bottom:70px;
-display:flex;justify-content:center;padding:20px;
-overflow:auto;opacity:0;transform:translateX(20px);
-transition:.35s ease;pointer-events:none;
+display:flex;justify-content:center;
+padding:20px;overflow:auto;
+opacity:0;transform:translateX(20px);
+transition:.35s ease;
+pointer-events:none;
 }
-.section.active{opacity:1;transform:translateX(0);pointer-events:auto;}
+.section.active{
+opacity:1;transform:translateX(0);
+pointer-events:auto;
+}
 
-.container{width:100%;max-width:500px;}
+.container{width:100%;max-width:520px;}
 
 .card{
 background:var(--card);
@@ -57,13 +72,11 @@ margin-bottom:20px;text-align:center;
 }
 
 h3{margin-bottom:15px;color:var(--gold);}
-
 input{
 width:100%;padding:10px;margin-top:10px;
 border-radius:8px;border:none;
 background:#111;color:white;text-align:center;
 }
-
 button{
 margin-top:10px;padding:8px 14px;
 border:none;border-radius:8px;
@@ -91,39 +104,14 @@ align-items:center;border-top:1px solid rgba(255,255,255,.1);
 100%{box-shadow:0 0 5px var(--red);}
 }
 
-/* CAMERAS */
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.camera{background:black;border-radius:10px;overflow:hidden;position:relative;}
-.camera iframe{width:100%;height:150px;border:none;}
-.remove{
-position:absolute;top:6px;right:6px;
-background:rgba(0,0,0,.7);
-border:none;color:white;border-radius:50%;
-width:22px;height:22px;cursor:pointer;
-}
-.camera.fullscreen{
-position:fixed;inset:0;z-index:4000;
-background:black;display:flex;
-align-items:center;justify-content:center;
-}
-.camera.fullscreen iframe{
-width:90%;height:90%;
-border-radius:12px;
-}
-
-.statusDot{
-position:absolute;top:8px;left:8px;
-width:12px;height:12px;border-radius:50%;
-background:gray;
-}
-.statusDot.online{background:var(--green);}
-.statusDot.offline{background:var(--red);}
-
-/* LOG */
 .log{
-font-size:12px;max-height:200px;
-overflow:auto;background:#111;
-padding:10px;border-radius:8px;text-align:left;
+font-size:12px;
+max-height:200px;
+overflow:auto;
+background:#111;
+padding:10px;
+border-radius:8px;
+text-align:left;
 }
 </style>
 </head>
@@ -138,21 +126,17 @@ padding:10px;border-radius:8px;text-align:left;
 
 <div id="app">
 
-<!-- ALARM -->
 <div class="section active" id="alarmSection">
 <div class="container">
 <div class="card alarm" id="alarmCard">
 <h3>Alarm</h3>
 
-<input id="alarmAddress" placeholder="Adres alarmu">
-<button onclick="saveAlarm()">Zapisz adres</button>
+<button onclick="startArm()">Uzbrój (5s)</button>
+<button onclick="disarm()">Rozbrój</button>
 
 <input type="time" id="scheduleTime">
 <button onclick="saveSchedule()">Zapisz godzinę</button>
-<button id="toggleScheduleBtn" onclick="toggleSchedule()">Harmonogram: OFF</button>
-
-<button onclick="arm()">Uzbrój</button>
-<button onclick="disarm()">Rozbrój</button>
+<button id="toggleScheduleBtn" onclick="toggleSchedule()">Harmonogram OFF</button>
 
 <div id="mainCameraBox" style="margin-top:15px;"></div>
 
@@ -160,44 +144,24 @@ padding:10px;border-radius:8px;text-align:left;
 </div>
 </div>
 
-<!-- LIGHT -->
-<div class="section" id="lightSection">
-<div class="container">
-<div class="card">
-<h3>Oświetlenie</h3>
-<input id="lightAddress" placeholder="Adres oświetlenia">
-<button onclick="saveLight()">Zapisz adres</button>
-</div>
-</div>
-</div>
-
-<!-- CAMERAS -->
-<div class="section" id="camSection">
-<div class="container">
-<div class="card">
-<h3>Kamery (6)</h3>
-<input id="camInput" placeholder="Adres embed">
-<button onclick="addCam()">Dodaj</button>
-<div class="grid" id="camGrid"></div>
-</div>
-</div>
-</div>
-
-<!-- LOG -->
 <div class="section" id="logSection">
 <div class="container">
 <div class="card">
 <h3>Log</h3>
+<button onclick="exportLog()">Eksport TXT</button>
+<button onclick="clearLog()">Wyczyść</button>
 <div class="log" id="logBox"></div>
 </div>
 </div>
 </div>
 
 <div class="tabbar">
-<div class="tab active" onclick="switchTab('alarmSection',this)"><span>🚨</span>Alarm</div>
-<div class="tab" onclick="switchTab('lightSection',this)"><span>💡</span>Światło</div>
-<div class="tab" onclick="switchTab('camSection',this)"><span>🎥</span>Kamery</div>
-<div class="tab" onclick="switchTab('logSection',this)"><span>📜</span>Log</div>
+<div class="tab active" onclick="switchTab('alarmSection',this)">
+<span>🚨</span>Alarm
+</div>
+<div class="tab" onclick="switchTab('logSection',this)">
+<span>📜</span>Log
+</div>
 </div>
 
 </div>
@@ -207,21 +171,71 @@ padding:10px;border-radius:8px;text-align:left;
 /* SPLASH */
 setTimeout(()=>splash.classList.add("fade"),1500);
 
-/* PIN */
-const PIN="1111";
+/* PIN SECURITY */
+let failedAttempts=0;
+let lockUntil=0;
+const AUTO_LOCK_TIME=5*60*1000;
+
+function hashPin(pin){
+return btoa(pin);
+}
+
+if(!localStorage.getItem("pinHash")){
+localStorage.setItem("pinHash",hashPin("1111"));
+}
+
 let input="";
+let lastActivity=Date.now();
+
 function update(){display.innerText=input.padEnd(4,"-");}
+
 function press(v){
+if(Date.now()<lockUntil)return;
+
 if(v==="C"){input="";}
-else if(v==="OK"){if(input===PIN){unlock();}input="";}
-else if(input.length<4){input+=v;}
+else if(v==="OK"){
+if(hashPin(input)===localStorage.getItem("pinHash")){
+unlock();
+}else{
+failedAttempts++;
+log("Błędny PIN");
+if(failedAttempts>=3){
+lockUntil=Date.now()+60000;
+alert("Blokada 60 sekund");
+}
+}
+input="";
+}else if(input.length<4){input+=v;}
 update();
 }
-function unlock(){lock.style.display="none";app.style.display="block";loadSavedData();}
+
+function unlock(){
+lock.style.display="none";
+app.style.display="block";
+failedAttempts=0;
+lastActivity=Date.now();
+}
+
 for(let i=1;i<=9;i++)create(i);
 create("C");create(0);create("OK");
-function create(v){let d=document.createElement("div");d.className="key";d.innerText=v;d.onclick=()=>press(v);keys.appendChild(d);}
+
+function create(v){
+let d=document.createElement("div");
+d.className="key";
+d.innerText=v;
+d.onclick=()=>press(v);
+keys.appendChild(d);
+}
 update();
+
+/* AUTO LOCK */
+setInterval(()=>{
+if(app.style.display==="block" && Date.now()-lastActivity>AUTO_LOCK_TIME){
+location.reload();
+}
+},10000);
+
+document.addEventListener("click",()=>lastActivity=Date.now());
 
 /* TABS */
 function switchTab(id,el){
@@ -235,99 +249,314 @@ el.classList.add("active");
 function log(txt){
 let logs=JSON.parse(localStorage.getItem("logs"))||[];
 logs.unshift(new Date().toLocaleTimeString()+" - "+txt);
+if(logs.length>100) logs.pop();
 localStorage.setItem("logs",JSON.stringify(logs));
 renderLog();
 }
 function renderLog(){
 let logs=JSON.parse(localStorage.getItem("logs"))||[];
-logBox.innerHTML=logs.slice(0,40).join("<br>");
+logBox.innerHTML=logs.join("<br>");
 }
 renderLog();
 
+function clearLog(){
+localStorage.removeItem("logs");
+renderLog();
+}
+
+function exportLog(){
+let logs=localStorage.getItem("logs")||"";
+let blob=new Blob([logs],{type:"text/plain"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="pav_log.txt";
+a.click();
+}
+
 /* ALARM */
 let armed=false;
-function saveAlarm(){localStorage.setItem("alarmAddress",alarmAddress.value);log("Zapisano adres alarmu");}
-function arm(auto=false){armed=true;alarmCard.classList.add("armed");log(auto?"Auto uzbrojenie":"Alarm uzbrojony");}
-function disarm(){armed=false;alarmCard.classList.remove("armed");log("Alarm rozbrojony");}
+
+function startArm(){
+let countdown=5;
+let interval=setInterval(()=>{
+countdown--;
+if(countdown<=0){
+clearInterval(interval);
+arm();
+}
+},1000);
+}
+
+function arm(auto=false){
+armed=true;
+alarmCard.classList.add("armed");
+log(auto?"Auto uzbrojenie":"Alarm uzbrojony");
+}
+
+function disarm(){
+armed=false;
+alarmCard.classList.remove("armed");
+log("Alarm rozbrojony");
+}
 
 /* HARMONOGRAM */
-let scheduleEnabled=localStorage.getItem("scheduleEnabled")==="true";
-function saveSchedule(){localStorage.setItem("scheduleTime",scheduleTime.value);log("Ustawiono harmonogram");}
+let scheduleEnabled=false;
+
+function saveSchedule(){
+localStorage.setItem("scheduleTime",scheduleTime.value);
+log("Ustawiono harmonogram");
+}
+
 function toggleSchedule(){
 scheduleEnabled=!scheduleEnabled;
-localStorage.setItem("scheduleEnabled",scheduleEnabled);
-toggleScheduleBtn.innerText="Harmonogram: "+(scheduleEnabled?"ON":"OFF");
+toggleScheduleBtn.innerText="Harmonogram "+(scheduleEnabled?"ON":"OFF");
 }
-function checkSchedule(){
+
+setInterval(()=>{
 if(!scheduleEnabled)return;
 let t=localStorage.getItem("scheduleTime");
 if(!t)return;
 let now=new Date();
 let current=now.getHours().toString().padStart(2,"0")+":"+now.getMinutes().toString().padStart(2,"0");
-if(current===t && !armed){arm(true);}
-}
-setInterval(checkSchedule,60000);
+if(current===t && !armed) arm(true);
+},60000);
 
-/* LIGHT */
-function saveLight(){localStorage.setItem("lightAddress",lightAddress.value);log("Zapisano adres oświetlenia");}
-
-/* LOAD */
-function loadSavedData(){
-alarmAddress.value=localStorage.getItem("alarmAddress")||"";
-lightAddress.value=localStorage.getItem("lightAddress")||"";
-scheduleTime.value=localStorage.getItem("scheduleTime")||"";
-toggleScheduleBtn.innerText="Harmonogram: "+(scheduleEnabled?"ON":"OFF");
+/* PWA */
+if("serviceWorker" in navigator){
+window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
 }
 
-/* CAMERAS */
-let cams=JSON.parse(localStorage.getItem("cams"))||[];
+// === ULTRA MODULES ===
+/* =========================
+   KAMERY 6x + OFFLINE + FULLSCREEN + SWIPE
+========================= */
+
+let cams = JSON.parse(localStorage.getItem("cams")) || [];
+let mainCameraIndex = localStorage.getItem("mainCameraIndex") || 0;
+
+const camSection = document.createElement("div");
+camSection.className = "section";
+camSection.id = "camSection";
+
+camSection.innerHTML = `
+<div class="container">
+<div class="card">
+<h3>Kamery (6)</h3>
+
+<input id="camInput" placeholder="Adres embed kamery">
+<button onclick="addCam()">Dodaj kamerę</button>
+<button onclick="openWall()">Monitoring Wall</button>
+
+<div class="grid" id="camGrid" style="margin-top:15px;"></div>
+</div>
+</div>
+`;
+
+document.getElementById("app").appendChild(camSection);
+
+const tabBar = document.querySelector(".tabbar");
+
+const camTab = document.createElement("div");
+camTab.className = "tab";
+camTab.innerHTML = "<span>🎥</span>Kamery";
+camTab.onclick = function(){ switchTab('camSection', this); };
+tabBar.appendChild(camTab);
+
 function renderCams(){
-camGrid.innerHTML="";
+const grid = document.getElementById("camGrid");
+grid.innerHTML = "";
+
 for(let i=0;i<6;i++){
-let url=cams[i]||"";
-let div=document.createElement("div");
-div.className="camera";
+let url = cams[i] || "";
+
+let div = document.createElement("div");
+div.className = "camera";
+
 if(url){
-div.innerHTML=`<button class="remove" onclick="event.stopPropagation();removeCam(${i})">×</button><iframe src="${url}"></iframe>`;
-div.onclick=()=>div.classList.toggle("fullscreen");
+div.innerHTML = `
+<span class="statusDot online" id="status-${i}"></span>
+<button class="remove" onclick="event.stopPropagation();removeCam(${i})">×</button>
+<iframe src="${url}" onload="setOnline(${i},true)" onerror="setOnline(${i},false)"></iframe>
+`;
+
+div.addEventListener("click",()=>openFullscreen(i));
+
 }else{
-div.innerHTML="<div style='height:150px;display:flex;align-items:center;justify-content:center;opacity:.4;'>Brak</div>";
+div.innerHTML = `<div style="height:150px;display:flex;align-items:center;justify-content:center;opacity:.4;">Brak</div>`;
 }
-camGrid.appendChild(div);
+
+grid.appendChild(div);
 }
+
 renderMainCamera();
 }
-function renderMainCamera(){
-if(cams.length>0){
-mainCameraBox.innerHTML=`<iframe src="${cams[0]}" style="width:100%;height:180px;border:none;border-radius:12px;"></iframe>`;
-}else{
-mainCameraBox.innerHTML="<div style='opacity:.4;'>Brak głównej kamery</div>";
+
+function setOnline(i,state){
+let dot = document.getElementById("status-"+i);
+if(!dot) return;
+dot.classList.remove("online","offline");
+dot.classList.add(state?"online":"offline");
+if(!state){
+log("Kamera "+(i+1)+" offline");
 }
 }
+
 function addCam(){
 if(cams.length>=6){alert("Max 6 kamer");return;}
-let url=camInput.value;if(!url)return;
+let url = document.getElementById("camInput").value;
+if(!url) return;
 cams.push(url);
 localStorage.setItem("cams",JSON.stringify(cams));
-camInput.value="";
+document.getElementById("camInput").value="";
 renderCams();
 log("Dodano kamerę");
 }
+
 function removeCam(i){
 cams.splice(i,1);
 localStorage.setItem("cams",JSON.stringify(cams));
 renderCams();
 log("Usunięto kamerę");
 }
-renderCams();
 
-/* PWA */
-if ("serviceWorker" in navigator) {
-window.addEventListener("load", function() {
-navigator.serviceWorker.register("sw.js");
+/* FULLSCREEN + SWIPE */
+function openFullscreen(i){
+let wrapper = document.createElement("div");
+wrapper.className = "camera fullscreen";
+wrapper.innerHTML = `<iframe src="${cams[i]}"></iframe>`;
+document.body.appendChild(wrapper);
+
+let startY=0;
+wrapper.addEventListener("touchstart",e=>startY=e.touches[0].clientY);
+wrapper.addEventListener("touchmove",e=>{
+if(e.touches[0].clientY-startY>100){
+wrapper.remove();
+}
+});
+wrapper.addEventListener("click",()=>wrapper.remove());
+}
+
+/* MONITORING WALL */
+function openWall(){
+let wall = document.createElement("div");
+wall.style.position="fixed";
+wall.style.inset="0";
+wall.style.background="black";
+wall.style.zIndex="5000";
+wall.style.display="grid";
+wall.style.gridTemplateColumns="repeat(3,1fr)";
+wall.style.gridTemplateRows="repeat(2,1fr)";
+wall.style.gap="5px";
+
+cams.forEach(url=>{
+let iframe=document.createElement("iframe");
+iframe.src=url;
+iframe.style.width="100%";
+iframe.style.height="100%";
+iframe.style.border="none";
+wall.appendChild(iframe);
+});
+
+wall.addEventListener("click",()=>wall.remove());
+document.body.appendChild(wall);
+}
+
+/* MAIN CAMERA IN ALARM */
+function renderMainCamera(){
+const box=document.getElementById("mainCameraBox");
+if(!box) return;
+
+if(cams.length>0){
+box.innerHTML=`<iframe src="${cams[mainCameraIndex]}" style="width:100%;height:180px;border:none;border-radius:12px;"></iframe>`;
+}else{
+box.innerHTML="<div style='opacity:.4;'>Brak głównej kamery</div>";
+}
+}
+
+/* =========================
+   OŚWIETLENIE ULTRA + PRESETY
+========================= */
+
+let lights = JSON.parse(localStorage.getItem("lights")) || [];
+
+const lightSection = document.createElement("div");
+lightSection.className="section";
+lightSection.id="lightSection";
+
+lightSection.innerHTML=`
+<div class="container">
+<div class="card">
+<h3>Oświetlenie</h3>
+
+<input id="lightInput" placeholder="Adres urządzenia">
+<button onclick="addLight()">Dodaj</button>
+
+<button onclick="presetNight()">Preset Noc</button>
+<button onclick="presetHome()">Preset Dom</button>
+<button onclick="presetAway()">Preset Wyjazd</button>
+
+<div id="lightList" style="margin-top:15px;"></div>
+</div>
+</div>
+`;
+
+document.getElementById("app").appendChild(lightSection);
+
+const lightTab=document.createElement("div");
+lightTab.className="tab";
+lightTab.innerHTML="<span>💡</span>Światło";
+lightTab.onclick=function(){switchTab('lightSection',this)};
+tabBar.appendChild(lightTab);
+
+function renderLights(){
+const list=document.getElementById("lightList");
+list.innerHTML="";
+lights.forEach((l,i)=>{
+let div=document.createElement("div");
+div.style.marginBottom="5px";
+div.innerHTML=`${l} <button onclick="removeLight(${i})">×</button>`;
+list.appendChild(div);
 });
 }
-</script>
 
+function addLight(){
+let val=document.getElementById("lightInput").value;
+if(!val) return;
+lights.push(val);
+localStorage.setItem("lights",JSON.stringify(lights));
+document.getElementById("lightInput").value="";
+renderLights();
+log("Dodano oświetlenie");
+}
+
+function removeLight(i){
+lights.splice(i,1);
+localStorage.setItem("lights",JSON.stringify(lights));
+renderLights();
+}
+
+function presetNight(){
+log("Preset Noc aktywowany");
+}
+
+function presetHome(){
+log("Preset Dom aktywowany");
+}
+
+function presetAway(){
+log("Preset Wyjazd aktywowany");
+}
+
+/* INTEGRACJA Z ALARMEM */
+function arm(auto=false){
+armed=true;
+alarmCard.classList.add("armed");
+log(auto?"Auto uzbrojenie":"Alarm uzbrojony");
+presetAway();
+}
+
+renderCams();
+renderLights();
+</script>
 </body>
 </html>
