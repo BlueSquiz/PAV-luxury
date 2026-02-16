@@ -3,53 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+ Luxury Smart</title>
+<title>PAV+ Luxury Villa</title>
 
 <style>
 :root{
 --gold:#d4af37;
---dark:#0a0a0a;
---card:#111;
---radius:22px;
+--bg:#0b0b0b;
+--glass:rgba(255,255,255,0.05);
 }
 
-*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system, BlinkMacSystemFont, sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
 
 body{
-background:#000;
+background:radial-gradient(circle at 20% 20%, rgba(212,175,55,0.05), transparent 40%),
+radial-gradient(circle at 80% 80%, rgba(212,175,55,0.05), transparent 40%),
+#000;
 color:#fff;
-overflow:hidden;
+overflow-x:hidden;
 }
 
-/* Splash */
+/* SPLASH */
 #splash{
 position:fixed;
 inset:0;
 background:#000;
 display:flex;
-align-items:center;
-justify-content:center;
 flex-direction:column;
+justify-content:center;
+align-items:center;
 z-index:999;
-animation:fadeOut 2.5s forwards 2s;
+animation:fadeOut 1s forwards 2.5s;
 }
+@keyframes fadeOut{to{opacity:0;visibility:hidden}}
 
-#splash svg{
-width:120px;
-animation:glow 2s infinite alternate;
+.logo{
+width:160px;
+filter:drop-shadow(0 0 20px var(--gold));
+animation:float 3s ease-in-out infinite alternate;
 }
+@keyframes float{from{transform:translateY(0)}to{transform:translateY(-10px)}}
 
-@keyframes glow{
-from{filter:drop-shadow(0 0 5px var(--gold))}
-to{filter:drop-shadow(0 0 25px var(--gold))}
-}
-
-@keyframes fadeOut{
-to{opacity:0;visibility:hidden}
-}
-
-/* PIN Screen */
-#lockScreen{
+/* LOCK */
+#lock{
 position:fixed;
 inset:0;
 background:#000;
@@ -61,19 +56,6 @@ gap:20px;
 z-index:998;
 }
 
-.pin-dots{
-display:flex;
-gap:15px;
-}
-
-.dot{
-width:15px;height:15px;
-border-radius:50%;
-background:#333;
-}
-
-.dot.active{background:var(--gold)}
-
 .keypad{
 display:grid;
 grid-template-columns:repeat(3,70px);
@@ -83,213 +65,246 @@ gap:15px;
 .key{
 height:70px;
 border-radius:50%;
-border:1px solid #333;
+background:#111;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:22px;
-color:#fff;
-transition:.2s;
+font-size:20px;
+border:1px solid #222;
 }
+.key:active{background:var(--gold);color:#000}
 
-.key:active{
-background:var(--gold);
-color:#000;
-transform:scale(.9);
-}
-
-/* App */
-#app{
-display:none;
-height:100vh;
-overflow:auto;
-padding:20px;
-}
-
-.logo{
-text-align:center;
-margin-bottom:20px;
-color:var(--gold);
-font-size:28px;
-font-weight:600;
-}
+/* APP */
+#app{display:none;padding:20px;padding-bottom:60px}
 
 .card{
-background:var(--card);
-border-radius:var(--radius);
+background:var(--glass);
+backdrop-filter:blur(10px);
 padding:20px;
+border-radius:20px;
 margin-bottom:20px;
-border:1px solid #222;
-box-shadow:0 0 25px rgba(212,175,55,.1);
+border:1px solid rgba(212,175,55,.2);
 }
 
 .button{
 background:var(--gold);
 color:#000;
-padding:10px 18px;
+padding:6px 14px;
 border-radius:20px;
 display:inline-block;
-margin-top:10px;
+margin-top:8px;
+cursor:pointer;
 }
 
-.tabbar{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-height:70px;
-background:#111;
-display:flex;
-justify-content:space-around;
-align-items:center;
-border-top:1px solid #222;
-}
-
-.tab{
-color:#777;
-transition:.3s;
-}
-
-.tab.active{
-color:var(--gold);
-transform:scale(1.2);
-}
-
-video{
+input, select{
 width:100%;
-border-radius:15px;
-margin-top:10px;
+padding:8px;
+margin-top:6px;
+background:#111;
+border:1px solid #222;
+color:#fff;
+border-radius:10px;
 }
 
+.device-card{
+margin-top:15px;
+padding:15px;
+border-radius:15px;
+background:#111;
+border:1px solid rgba(212,175,55,.2);
+}
+
+.log-item{
+font-size:12px;
+margin-bottom:4px;
+opacity:.8;
+}
 </style>
 </head>
 <body>
 
-<!-- SPLASH -->
 <div id="splash">
-<svg viewBox="0 0 100 100" fill="none">
-<path d="M50 10 L70 80 L50 70 L30 80 Z" fill="#d4af37"/>
-</svg>
+<img src="logo.png" class="logo">
 <h2 style="color:#d4af37;margin-top:15px;">PAV+</h2>
 </div>
 
-<!-- LOCK -->
-<div id="lockScreen">
-<h2 style="color:#d4af37;">Wpisz PIN</h2>
-<div class="pin-dots">
-<div class="dot"></div>
-<div class="dot"></div>
-<div class="dot"></div>
-<div class="dot"></div>
-</div>
-
+<div id="lock">
+<h3 style="color:#d4af37;">Wpisz PIN</h3>
 <div class="keypad">
-<div class="key">1</div>
-<div class="key">2</div>
-<div class="key">3</div>
-<div class="key">4</div>
-<div class="key">5</div>
-<div class="key">6</div>
-<div class="key">7</div>
-<div class="key">8</div>
-<div class="key">9</div>
-<div></div>
-<div class="key">0</div>
-<div class="key" id="del">B</div>
+<div class="key">1</div><div class="key">2</div><div class="key">3</div>
+<div class="key">4</div><div class="key">5</div><div class="key">6</div>
+<div class="key">7</div><div class="key">8</div><div class="key">9</div>
+<div></div><div class="key">0</div><div class="key" id="del">B</div>
 </div>
 </div>
 
-<!-- APP -->
 <div id="app">
-<div class="logo">PAV+</div>
-
-<div class="card" id="dashboard">
-<h3>Security Dashboard</h3>
-<p>Status: <span id="status">BEZPIECZNY</span></p>
-<p>Czas alarmu: <span id="timer">0</span>s</p>
-<div class="button" onclick="arm()">Uzbrój</div>
-<div class="button" onclick="disarm()">Rozbrój</div>
-</div>
 
 <div class="card">
-<h3>Kamery</h3>
-<video src="https://www.w3schools.com/html/mov_bbb.mp4" autoplay muted loop></video>
+<h3>Dodaj urządzenie Tasmota</h3>
+<input id="devName" placeholder="Nazwa">
+<input id="devIP" placeholder="IP np. 192.168.1.50">
+<div class="button" onclick="addDevice()">Dodaj</div>
 </div>
+
+<div id="devices"></div>
 
 <div class="card">
-<h3>Aktywność</h3>
-<ul id="log"></ul>
+<h3>Log systemowy</h3>
+<div class="button" onclick="exportLogs()">Eksport</div>
+<div id="log"></div>
 </div>
 
-</div>
-
-<div class="tabbar">
-<div class="tab active">Alarm</div>
-<div class="tab">Kamery</div>
-<div class="tab">Oświetlenie</div>
 </div>
 
 <script>
-let input="";
-let savedPin=localStorage.getItem("pav_pin")||"1111";
-const dots=document.querySelectorAll(".dot");
+let failedAttempts=0;
+let lockUntil=0;
 
-document.querySelectorAll(".key").forEach(key=>{
-key.addEventListener("click",()=>{
-if(key.innerText==="B"){
-input=input.slice(0,-1);
-}else{
-if(input.length<4) input+=key.innerText;
+/* SHA-256 */
+async function hash(text){
+const enc=new TextEncoder();
+const buf=await crypto.subtle.digest("SHA-256",enc.encode(text));
+return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
-updateDots();
-if(input.length===4){
-if(input===savedPin){
+
+async function initPIN(){
+if(!localStorage.getItem("pav_pin")){
+localStorage.setItem("pav_pin",await hash("1111"));
+}
+}
+initPIN();
+
+let pinInput="";
+document.querySelectorAll(".key").forEach(k=>{
+k.onclick=async()=>{
+if(Date.now()<lockUntil) return alert("Zablokowany 60s");
+if(k.innerText==="B"){pinInput=pinInput.slice(0,-1)}
+else if(pinInput.length<4){pinInput+=k.innerText}
+if(pinInput.length===4){
+let h=await hash(pinInput);
+if(h===localStorage.getItem("pav_pin")){
 unlock();
 }else{
-input="";
-updateDots();
-alert("Błędny PIN");
+failedAttempts++;
+logEvent("Błędny PIN","system");
+if(failedAttempts>=5){
+lockUntil=Date.now()+60000;
+alert("Blokada 60s");
+}
+}
+pinInput="";
 }
 }
 });
-});
-
-function updateDots(){
-dots.forEach((d,i)=>{
-d.classList.toggle("active",i<input.length);
-});
-}
 
 function unlock(){
-document.getElementById("lockScreen").style.display="none";
+document.getElementById("lock").style.display="none";
 document.getElementById("app").style.display="block";
+logEvent("Odblokowano system","system");
 startAutoLock();
+loadDevices();
+renderLogs();
 }
 
-let autoLockTimer;
 function startAutoLock(){
-clearTimeout(autoLockTimer);
-autoLockTimer=setTimeout(()=>{
-location.reload();
-},300000);
+setTimeout(()=>location.reload(),300000);
+document.addEventListener("visibilitychange",()=>{
+if(document.hidden) location.reload();
+});
 }
 
-function arm(){
-document.getElementById("status").innerText="UZBROJONY";
-logEvent("Alarm uzbrojony");
+/* LOG */
+function logEvent(text,type){
+let logs=JSON.parse(localStorage.getItem("pav_logs")||"[]");
+logs.unshift({time:new Date().toLocaleString(),text,type});
+if(logs.length>300) logs=logs.slice(0,300);
+localStorage.setItem("pav_logs",JSON.stringify(logs));
+renderLogs();
 }
 
-function disarm(){
-document.getElementById("status").innerText="BEZPIECZNY";
-logEvent("Alarm rozbrojony");
+function renderLogs(){
+let logs=JSON.parse(localStorage.getItem("pav_logs")||"[]");
+let el=document.getElementById("log");
+el.innerHTML="";
+logs.forEach(l=>{
+let div=document.createElement("div");
+div.className="log-item";
+div.innerText=l.time+" - "+l.text;
+el.appendChild(div);
+});
 }
 
-function logEvent(text){
-let li=document.createElement("li");
-li.innerText=new Date().toLocaleTimeString()+" - "+text;
-document.getElementById("log").prepend(li);
+function exportLogs(){
+let data=localStorage.getItem("pav_logs")||"[]";
+let blob=new Blob([data],{type:"text/plain"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="logs.txt";
+a.click();
 }
 
+/* TASMOTA DEVICES */
+function addDevice(){
+let name=document.getElementById("devName").value;
+let ip=document.getElementById("devIP").value;
+if(!name||!ip) return;
+
+let devices=JSON.parse(localStorage.getItem("pav_devices")||"[]");
+devices.push({id:Date.now(),name,ip,scenes:[]});
+localStorage.setItem("pav_devices",JSON.stringify(devices));
+loadDevices();
+logEvent("Dodano urządzenie "+name,"tasmota");
+}
+
+function loadDevices(){
+let devices=JSON.parse(localStorage.getItem("pav_devices")||"[]");
+let container=document.getElementById("devices");
+container.innerHTML="";
+devices.forEach(d=>{
+let div=document.createElement("div");
+div.className="device-card";
+div.innerHTML=`
+<h4>${d.name}</h4>
+<div>Status: <span id="status-${d.id}">...</span></div>
+<div class="button" onclick="power('${d.ip}','On')">ON</div>
+<div class="button" onclick="power('${d.ip}','Off')">OFF</div>
+<input type="range" min="0" max="100" onchange="setDimmer('${d.ip}',this.value)">
+<input type="color" onchange="setColor('${d.ip}',this.value)">
+`;
+container.appendChild(div);
+checkStatus(d);
+setInterval(()=>checkStatus(d),5000);
+});
+}
+
+async function power(ip,state){
+await fetch(`http://${ip}/cm?cmnd=Power%20${state}`);
+logEvent("Power "+state+" "+ip,"tasmota");
+}
+
+async function setDimmer(ip,val){
+await fetch(`http://${ip}/cm?cmnd=Dimmer%20${val}`);
+logEvent("Dimmer "+val+" "+ip,"tasmota");
+}
+
+async function setColor(ip,val){
+let hex=val.replace("#","");
+await fetch(`http://${ip}/cm?cmnd=Color%20${hex}`);
+logEvent("Color "+hex+" "+ip,"tasmota");
+}
+
+async function checkStatus(d){
+try{
+let r=await fetch(`http://${d.ip}/cm?cmnd=Status%200`);
+let json=await r.json();
+let power=json.Status.Power||json.StatusSTS.POWER;
+document.getElementById("status-"+d.id).innerText=power;
+}catch(e){
+document.getElementById("status-"+d.id).innerText="Offline";
+}
+}
 </script>
+
 </body>
 </html>
