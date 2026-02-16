@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAV+ CINEMATIC</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --gold1:#F8E7B5;
+  --gold2:#D4AF37;
+}
+
+body{
+  margin:0;
+  background:#000;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  color:white;
+  overflow-x:hidden;
+}
+
+/* PARTICLE BACKGROUND */
+canvas#particles{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+}
+
+/* VIGNETTE */
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at center,transparent 60%,rgba(0,0,0,.7));
+  pointer-events:none;
+}
+
+/* LOGO */
+.logo{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:25px 0;
+  filter:drop-shadow(0 0 15px rgba(212,175,55,.6));
+  animation:logoFloat 5s ease-in-out infinite;
+}
+@keyframes logoFloat{
+  0%{transform:translateY(0);}
+  50%{transform:translateY(-10px);}
+  100%{transform:translateY(0);}
+}
+
+/* CARD */
+.card{
+  margin:15px;
+  padding:20px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(15px);
+  border:1px solid rgba(212,175,55,.2);
+  transition:.4s ease;
+}
+.card:hover{
+  transform:translateY(-5px) scale(1.01);
+}
+
+/* BUTTON */
+button{
+  margin-top:8px;
+  padding:8px 14px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--gold1),var(--gold2));
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.2s ease;
+}
+button:active{
+  transform:scale(.92);
+}
+
+/* INTRUSION */
+.intrusion{
+  animation:redPulse 1s infinite;
+}
+@keyframes redPulse{
+  0%{background:#000;}
+  50%{background:#200000;}
+  100%{background:#000;}
+}
+
+/* ALERT */
+#alertBar{
+  position:fixed;
+  top:-60px;
+  left:0;
+  right:0;
+  height:60px;
+  background:#300000;
+  color:#ff4444;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  transition:.4s;
+  z-index:50;
+}
+#alertBar.active{ top:0; }
+
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div id="alertBar"></div>
+
+<!-- ANIMOWANY PAW -->
+<div class="logo">
+<svg viewBox="0 0 200 200" width="120" height="120">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8E7B5"/>
+      <stop offset="50%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#8C6B1F"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M100 40 C20 80,20 160,100 180 C180 160,180 80,100 40 Z"
+        fill="url(#goldGradient)"
+        opacity="0.2">
+    <animate attributeName="d"
+      values="
+      M100 40 C20 80,20 160,100 180 C180 160,180 80,100 40 Z;
+      M100 35 C10 85,10 170,100 185 C190 170,190 85,100 35 Z;
+      M100 40 C20 80,20 160,100 180 C180 160,180 80,100 40 Z"
+      dur="6s"
+      repeatCount="indefinite"/>
+  </path>
+
+  <path d="M100 70 C90 110,95 150,100 165 C105 150,110 110,100 70 Z"
+        fill="url(#goldGradient)"/>
+
+  <circle cx="100" cy="55" r="8" fill="url(#goldGradient)"/>
+</svg>
+</div>
+
+<div class="card">
+  <h3>Security Dashboard</h3>
+  <div>Status: <span id="statusText">BEZPIECZNY</span></div>
+  <div>Czas alarmu: <span id="alarmTime">0s</span></div>
+  <button onclick="arm()">Uzbrój</button>
+  <button onclick="disarm()">Rozbrój</button>
+</div>
+
+<div class="card">
+  <h3>Aktywność</h3>
+  <canvas id="activityChart"></canvas>
+</div>
+
+<script>
+
+/* SERVICE WORKER */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
+}
+
+/* PARTICLES */
+const canvas=document.getElementById("particles");
+const ctx=canvas.getContext("2d");
+canvas.width=innerWidth;
+canvas.height=innerHeight;
+
+let particles=[];
+for(let i=0;i<50;i++){
+  particles.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    r:Math.random()*2,
+    dx:(Math.random()-.5)*.5,
+    dy:(Math.random()-.5)*.5
+  });
+}
+
+function animateParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="rgba(212,175,55,.5)";
+  particles.forEach(p=>{
+    p.x+=p.dx;
+    p.y+=p.dy;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+  });
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+/* CHART */
+const chart=new Chart(document.getElementById('activityChart'),{
+  type:'line',
+  data:{
+    labels:[],
+    datasets:[{
+      data:[],
+      borderColor:'#D4AF37',
+      tension:.3
+    }]
+  },
+  options:{
+    plugins:{legend:{display:false}},
+    scales:{x:{display:false},y:{display:false}}
+  }
+});
+
+function addActivity(){
+  chart.data.labels.push("");
+  chart.data.datasets[0].data.push(Math.random()*5);
+  if(chart.data.labels.length>10){
+    chart.data.labels.shift();
+    chart.data.datasets[0].data.shift();
+  }
+  chart.update();
+}
+
+/* INTRUSION */
+let interval;
+let seconds=0;
+
+function arm(){
+  document.body.classList.add("intrusion");
+  statusText.textContent="ALARM AKTYWNY";
+  statusText.style.color="red";
+  showAlert("ALARM AKTYWNY");
+  addActivity();
+  interval=setInterval(()=>{
+    seconds++;
+    alarmTime.textContent=seconds+"s";
+  },1000);
+}
+
+function disarm(){
+  document.body.classList.remove("intrusion");
+  statusText.textContent="BEZPIECZNY";
+  statusText.style.color="white";
+  clearInterval(interval);
+  seconds=0;
+  alarmTime.textContent="0s";
+  addActivity();
+}
+
+function showAlert(text){
+  alertBar.textContent=text;
+  alertBar.classList.add("active");
+  setTimeout(()=>alertBar.classList.remove("active"),3000);
+}
+
+</script>
+</body>
+</html>
