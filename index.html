@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+ 3.4</title>
+<title>PAV+ 3.5</title>
 
 <style>
 :root{
@@ -17,6 +17,7 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
 body{background:var(--bg);color:white;overflow:hidden;}
 
+/* SPLASH */
 #splash{
 position:fixed;inset:0;background:black;
 display:flex;align-items:center;justify-content:center;
@@ -30,6 +31,7 @@ z-index:3000;transition:opacity 1s;
 100%{text-shadow:0 0 5px var(--gold);}
 }
 
+/* LOCK */
 #lock{
 position:fixed;inset:0;background:black;
 display:flex;flex-direction:column;
@@ -47,6 +49,7 @@ font-size:24px;cursor:pointer;
 }
 .key:active{background:var(--gold);color:black;}
 
+/* APP */
 #app{display:none;height:100vh;overflow:hidden;}
 
 .section{
@@ -86,6 +89,7 @@ background:var(--gold);color:black;
 font-weight:bold;cursor:pointer;
 }
 
+/* TABBAR */
 .tabbar{
 position:fixed;bottom:0;left:0;right:0;
 height:70px;background:#111;
@@ -100,6 +104,7 @@ font-size:12px;cursor:pointer;transition:.3s;
 .tab span{display:block;font-size:20px;}
 .tab.active span{text-shadow:0 0 10px var(--gold);}
 
+/* ALARM */
 .alarm.armed{
 animation:redPulse 1.5s infinite;
 border-color:var(--red);
@@ -110,6 +115,7 @@ border-color:var(--red);
 100%{box-shadow:0 0 5px var(--red);}
 }
 
+/* CAMERAS */
 .grid{
 display:grid;
 grid-template-columns:1fr 1fr;
@@ -127,7 +133,6 @@ background:rgba(0,0,0,.7);
 border:none;color:white;border-radius:50%;
 width:22px;height:22px;cursor:pointer;
 }
-
 .camera.fullscreen{
 position:fixed;inset:0;
 z-index:4000;background:black;
@@ -138,6 +143,7 @@ height:90%;width:90%;
 border-radius:12px;
 }
 
+/* LOG */
 .log{
 font-size:12px;
 max-height:200px;
@@ -159,31 +165,40 @@ text-align:left;
 
 <div id="app">
 
+<!-- ALARM -->
 <div class="section active" id="alarmSection">
 <div class="container">
 <div class="card alarm" id="alarmCard">
 <h3>Alarm</h3>
+
 <input id="alarmAddress" placeholder="Adres alarmu">
 <button onclick="saveAlarm()">Zapisz adres</button>
+
+<input type="time" id="scheduleTime">
+<div style="margin-top:10px;">
+<button onclick="saveSchedule()">Zapisz godzinę</button>
+<button id="toggleScheduleBtn" onclick="toggleSchedule()">Harmonogram: OFF</button>
+</div>
+
 <button onclick="arm()">Uzbrój</button>
 <button onclick="disarm()">Rozbrój</button>
+
 </div>
 </div>
 </div>
 
+<!-- LIGHT -->
 <div class="section" id="lightSection">
 <div class="container">
 <div class="card">
 <h3>Oświetlenie</h3>
 <input id="lightAddress" placeholder="Adres oświetlenia">
 <button onclick="saveLight()">Zapisz adres</button>
-<button onclick="log('Światło RELAX')">RELAX</button>
-<button onclick="log('Światło NIGHT')">NIGHT</button>
-<button onclick="log('Światło FULL')">FULL</button>
 </div>
 </div>
 </div>
 
+<!-- CAM -->
 <div class="section" id="camSection">
 <div class="container">
 <div class="card">
@@ -195,6 +210,7 @@ text-align:left;
 </div>
 </div>
 
+<!-- LOG -->
 <div class="section" id="logSection">
 <div class="container">
 <div class="card">
@@ -229,9 +245,12 @@ setTimeout(()=>splash.classList.add("fade"),1500);
 /* PIN */
 const PIN="1111";
 let input="", attempts=0, lockUntil=0;
+
 function update(){display.innerText=input.padEnd(4,"-");}
+
 function press(v){
 if(Date.now()<lockUntil)return;
+
 if(v==="C"){input="";}
 else if(v==="OK"){
 if(input===PIN){unlock();}
@@ -244,18 +263,30 @@ alert("Blokada 60 sekund");
 }
 }
 input="";
-}else if(input.length<4){input+=v;}
+}else if(input.length<4){
+input+=v;
+}
 update();
 }
-function unlock(){lock.classList.add("hide");app.style.display="block";log("Odblokowano");}
+
+function unlock(){
+lock.classList.add("hide");
+app.style.display="block";
+loadSavedData();
+log("Odblokowano");
+}
+
 for(let i=1;i<=9;i++)create(i);
 create("C");create(0);create("OK");
+
 function create(v){
 let d=document.createElement("div");
-d.className="key";d.innerText=v;
+d.className="key";
+d.innerText=v;
 d.onclick=()=>press(v);
 keys.appendChild(d);
 }
+
 update();
 
 /* TABS */
@@ -275,6 +306,7 @@ logs.unshift(entry);
 localStorage.setItem("logs",JSON.stringify(logs));
 renderLog();
 }
+
 function renderLog(){
 let logs=JSON.parse(localStorage.getItem("logs"))||[];
 logBox.innerHTML=logs.slice(0,40).join("<br>");
@@ -282,12 +314,61 @@ logBox.innerHTML=logs.slice(0,40).join("<br>");
 renderLog();
 
 /* ALARM */
+let armed=false;
+
 function saveAlarm(){
 localStorage.setItem("alarmAddress",alarmAddress.value);
 log("Zapisano adres alarmu");
 }
-function arm(){alarmCard.classList.add("armed");log("Alarm uzbrojony");}
-function disarm(){alarmCard.classList.remove("armed");log("Alarm rozbrojony");}
+
+function arm(auto=false){
+armed=true;
+alarmCard.classList.add("armed");
+log(auto ? "Auto uzbrojenie alarmu" : "Alarm uzbrojony");
+}
+
+function disarm(){
+armed=false;
+alarmCard.classList.remove("armed");
+log("Alarm rozbrojony");
+}
+
+/* HARMONOGRAM */
+let scheduleEnabled = localStorage.getItem("scheduleEnabled") === "true";
+
+function saveSchedule(){
+localStorage.setItem("scheduleTime",scheduleTime.value);
+log("Ustawiono harmonogram na " + scheduleTime.value);
+}
+
+function toggleSchedule(){
+scheduleEnabled = !scheduleEnabled;
+localStorage.setItem("scheduleEnabled", scheduleEnabled);
+updateScheduleUI();
+log(scheduleEnabled ? "Włączono harmonogram" : "Wyłączono harmonogram");
+}
+
+function updateScheduleUI(){
+toggleScheduleBtn.innerText = "Harmonogram: " + (scheduleEnabled ? "ON" : "OFF");
+toggleScheduleBtn.style.background = scheduleEnabled ? "green" : "gray";
+}
+
+function checkSchedule(){
+if(!scheduleEnabled) return;
+
+let savedTime = localStorage.getItem("scheduleTime");
+if(!savedTime) return;
+
+let now = new Date();
+let current = now.getHours().toString().padStart(2,"0") + ":" +
+now.getMinutes().toString().padStart(2,"0");
+
+if(current === savedTime && !armed){
+arm(true);
+}
+}
+
+setInterval(checkSchedule,60000);
 
 /* LIGHT */
 function saveLight(){
@@ -295,14 +376,24 @@ localStorage.setItem("lightAddress",lightAddress.value);
 log("Zapisano adres oświetlenia");
 }
 
+/* LOAD DATA */
+function loadSavedData(){
+alarmAddress.value = localStorage.getItem("alarmAddress") || "";
+lightAddress.value = localStorage.getItem("lightAddress") || "";
+scheduleTime.value = localStorage.getItem("scheduleTime") || "";
+updateScheduleUI();
+}
+
 /* CAMERAS */
 let cams=JSON.parse(localStorage.getItem("cams"))||[];
+
 function renderCams(){
 camGrid.innerHTML="";
 for(let i=0;i<4;i++){
 let url=cams[i]||"";
 let div=document.createElement("div");
 div.className="camera";
+
 if(url){
 div.innerHTML=`<button class="remove" onclick="event.stopPropagation();removeCam(${i})">×</button>
 <iframe src="${url}"></iframe>`;
@@ -310,9 +401,11 @@ div.addEventListener("click",()=>div.classList.toggle("fullscreen"));
 }else{
 div.innerHTML="<div style='display:flex;align-items:center;justify-content:center;height:150px;opacity:.4;'>Brak</div>";
 }
+
 camGrid.appendChild(div);
 }
 }
+
 function addCam(){
 if(cams.length>=4){alert("Max 4 kamery");return;}
 let url=camInput.value;if(!url)return;
@@ -322,12 +415,14 @@ camInput.value="";
 renderCams();
 log("Dodano kamerę");
 }
+
 function removeCam(i){
 cams.splice(i,1);
 localStorage.setItem("cams",JSON.stringify(cams));
 renderCams();
 log("Usunięto kamerę");
 }
+
 renderCams();
 
 </script>
