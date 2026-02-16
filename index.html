@@ -3,195 +3,198 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+ Luxury Villa</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
+<title>PAV+ Ultra</title>
 
 <style>
 :root{
---gold:#d4af37;
---bg:#000;
---glass:rgba(255,255,255,0.05);
+--gold1:#f5d27a;
+--gold2:#b88a1f;
+--bg:#050505;
+--glass:rgba(255,255,255,.05);
+--border:rgba(245,210,122,.25);
+--green:#5fff8b;
+--red:#ff5757;
 }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
 
 body{
 background:
-radial-gradient(circle at 20% 20%, rgba(212,175,55,0.05), transparent 40%),
-radial-gradient(circle at 80% 80%, rgba(212,175,55,0.05), transparent 40%),
-#000;
+radial-gradient(circle at 20% 10%, rgba(245,210,122,.08), transparent 50%),
+radial-gradient(circle at 80% 90%, rgba(245,210,122,.06), transparent 50%),
+#050505;
 color:#fff;
-overflow-x:hidden;
+overflow:hidden;
 }
 
-/* SPLASH */
-#splash{
+/* LOADER */
+#loader{
 position:fixed;
 inset:0;
 background:#000;
 display:flex;
-flex-direction:column;
 justify-content:center;
 align-items:center;
 z-index:999;
-animation:fadeOut 1s forwards 2.5s;
+flex-direction:column;
+}
+
+.peacock{
+width:120px;
+animation:rotate 4s linear infinite;
+filter:drop-shadow(0 0 20px var(--gold1));
+}
+
+@keyframes rotate{
+from{transform:rotate(0)}
+to{transform:rotate(360deg)}
+}
+
+.fadeOut{
+animation:fadeOut 1s forwards;
 }
 
 @keyframes fadeOut{
 to{opacity:0;visibility:hidden}
 }
 
-.logo{
-width:150px;
-filter:drop-shadow(0 0 20px var(--gold));
-animation:float 3s ease-in-out infinite alternate;
-}
-
-@keyframes float{
-from{transform:translateY(0)}
-to{transform:translateY(-10px)}
-}
-
-/* LOCK */
-#lock{
-position:fixed;
+/* SECTIONS */
+.section{
+position:absolute;
 inset:0;
-background:#000;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-gap:20px;
-z-index:998;
-}
-
-.keypad{
-display:grid;
-grid-template-columns:repeat(3,70px);
-gap:15px;
-}
-
-.key{
-height:70px;
-border-radius:50%;
-background:#111;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:22px;
-border:1px solid #222;
-}
-
-.key:active{
-background:var(--gold);
-color:#000;
-}
-
-/* APP */
-#app{
-display:none;
 padding:20px;
-padding-bottom:80px;
+padding-bottom:100px;
+overflow-y:auto;
+opacity:0;
+transform:translateX(40px);
+transition:.4s;
 }
 
+.section.active{
+opacity:1;
+transform:translateX(0);
+}
+
+/* CARD */
 .card{
 background:var(--glass);
-backdrop-filter:blur(10px);
-padding:20px;
-border-radius:20px;
-margin-bottom:20px;
-border:1px solid rgba(212,175,55,.2);
+backdrop-filter:blur(20px);
+border:1px solid var(--border);
+border-radius:28px;
+padding:22px;
+margin-bottom:22px;
+box-shadow:0 0 40px rgba(245,210,122,.08);
+}
+
+h3{
+font-size:20px;
+margin-bottom:14px;
+background:linear-gradient(90deg,var(--gold1),var(--gold2));
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
 }
 
 .button{
-background:var(--gold);
-color:#000;
-padding:6px 14px;
-border-radius:20px;
 display:inline-block;
+padding:10px 20px;
+border-radius:30px;
 margin-top:10px;
+background:linear-gradient(135deg,var(--gold1),var(--gold2));
+color:#000;
+font-weight:600;
 cursor:pointer;
+transition:.3s;
 }
 
-input, select{
+.button:hover{transform:translateY(-2px)}
+
+input{
 width:100%;
-padding:8px;
-margin-top:6px;
-background:#111;
-border:1px solid #222;
+padding:12px;
+margin-top:10px;
+border-radius:18px;
+background:rgba(0,0,0,.6);
+border:1px solid rgba(245,210,122,.2);
 color:#fff;
-border-radius:10px;
 }
 
-.device{
-margin-top:15px;
-padding:15px;
-border-radius:15px;
-background:#111;
-border:1px solid rgba(212,175,55,.2);
-}
+.status.online{color:var(--green)}
+.status.offline{color:var(--red)}
 
 iframe{
 width:100%;
 height:200px;
 border:none;
-border-radius:15px;
-margin-top:10px;
+border-radius:20px;
+margin-top:12px;
 }
 
-.log-item{
-font-size:12px;
-opacity:.8;
-margin-bottom:4px;
+/* TABBAR */
+.tabbar{
+position:fixed;
+bottom:20px;
+left:20px;
+right:20px;
+height:70px;
+background:var(--glass);
+backdrop-filter:blur(20px);
+border:1px solid var(--border);
+border-radius:40px;
+display:flex;
+justify-content:space-around;
+align-items:center;
+box-shadow:0 0 40px rgba(245,210,122,.15);
 }
+
+.tab{
+flex:1;
+text-align:center;
+color:#aaa;
+transition:.3s;
+font-size:14px;
+}
+
+.tab.active{
+color:var(--gold1);
+transform:translateY(-5px);
+}
+
 </style>
 </head>
-
 <body>
 
-<div id="splash">
-<img src="logo.png" class="logo">
-<h2 style="color:#d4af37;margin-top:15px;">PAV+</h2>
+<!-- LOADER -->
+<div id="loader">
+<svg class="peacock" viewBox="0 0 100 100">
+<path fill="#f5d27a" d="M50 10 C70 30 70 70 50 90 C30 70 30 30 50 10Z"/>
+<circle cx="50" cy="30" r="6" fill="#b88a1f"/>
+</svg>
+<h3 style="margin-top:20px;">PAV+</h3>
 </div>
 
-<div id="lock">
-<h3 style="color:#d4af37;">Wpisz PIN</h3>
-<div class="keypad">
-<div class="key">1</div><div class="key">2</div><div class="key">3</div>
-<div class="key">4</div><div class="key">5</div><div class="key">6</div>
-<div class="key">7</div><div class="key">8</div><div class="key">9</div>
-<div></div><div class="key">0</div><div class="key" id="del">B</div>
-</div>
-</div>
-
-<div id="app">
-
+<!-- ALARM SECTION -->
+<div id="alarmSec" class="section active">
 <div class="card">
 <h3>Alarm</h3>
 <div>Status: <span id="alarmStatus">ROZBROJONY</span></div>
-<div id="bar" style="height:6px;background:#222;border-radius:10px;margin-top:8px;overflow:hidden;">
-<div id="barInner" style="height:100%;width:0%;background:#d4af37;"></div>
-</div>
 <div class="button" onclick="arm()">Uzbrój</div>
 <div class="button" onclick="disarm()">Rozbrój</div>
 </div>
+</div>
 
+<!-- DEVICES -->
+<div id="devicesSec" class="section">
 <div class="card">
 <h3>Dodaj Tasmota</h3>
 <input id="name" placeholder="Nazwa">
-<input id="ip" placeholder="IP np. 192.168.1.50">
+<input id="ip" placeholder="IP">
 <div class="button" onclick="addDevice()">Dodaj</div>
 </div>
-
 <div id="devices"></div>
+</div>
 
+<!-- CAMERAS -->
+<div id="camsSec" class="section">
 <div class="card">
 <h3>Kamery</h3>
 <input id="cam1url" placeholder="URL kamera 1">
@@ -200,149 +203,48 @@ margin-bottom:4px;
 <iframe id="cam1"></iframe>
 <iframe id="cam2"></iframe>
 </div>
-
-<div class="card">
-<h3>Log</h3>
-<div class="button" onclick="exportLogs()">Eksport</div>
-<div id="logs"></div>
 </div>
 
+<!-- TABBAR -->
+<div class="tabbar">
+<div class="tab active" onclick="switchTab('alarmSec',this)">Alarm</div>
+<div class="tab" onclick="switchTab('devicesSec',this)">Urządzenia</div>
+<div class="tab" onclick="switchTab('camsSec',this)">Kamery</div>
 </div>
 
 <script>
-if('serviceWorker' in navigator){
-navigator.serviceWorker.register('sw.js');
-}
 
-/* PIN */
-let pin="";
-let fails=0;
-let blockUntil=0;
+/* LOADER */
+setTimeout(()=>{
+document.getElementById("loader").classList.add("fadeOut");
+},2000);
 
-async function sha(text){
-const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
-return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-
-(async()=>{
-if(!localStorage.getItem("pin")){
-localStorage.setItem("pin",await sha("1111"));
-}
-})();
-
-document.querySelectorAll(".key").forEach(k=>{
-k.onclick=async()=>{
-if(Date.now()<blockUntil) return alert("Zablokowany 60s");
-
-if(k.innerText==="B"){
-pin=pin.slice(0,-1);
-}else if(pin.length<4){
-pin+=k.innerText;
-}
-
-if(pin.length===4){
-let h=await sha(pin);
-if(h===localStorage.getItem("pin")){
-unlock();
-}else{
-fails++;
-log("Błędny PIN");
-if(fails>=5){
-blockUntil=Date.now()+60000;
-alert("Blokada 60s");
-}
-}
-pin="";
-}
-}
-});
-
-function unlock(){
-document.getElementById("lock").style.display="none";
-document.getElementById("app").style.display="block";
-log("Odblokowano system");
-loadDevices();
-loadCams();
-renderLogs();
-setTimeout(()=>location.reload(),300000);
+/* TAB SWITCH */
+function switchTab(id,el){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+el.classList.add("active");
 }
 
 /* ALARM */
-let alarmTimer=null;
 function arm(){
-let sec=10;
-let bar=document.getElementById("barInner");
-bar.style.width="0%";
-let i=setInterval(()=>{
-sec--;
-bar.style.width=((10-sec)*10)+"%";
-if(sec<=0){
-clearInterval(i);
-activate();
-}
-},1000);
-log("Rozpoczęto uzbrajanie");
-}
-
-function activate(){
 document.getElementById("alarmStatus").innerText="UZBROJONY";
-alarmTimer=setInterval(()=>{
-let t=document.getElementById("alarmStatus");
-let time=parseInt(t.dataset.t||0)+1;
-t.dataset.t=time;
-t.innerText="UZBROJONY ("+time+"s)";
-},1000);
-log("Alarm uzbrojony");
 }
 
 function disarm(){
-clearInterval(alarmTimer);
 document.getElementById("alarmStatus").innerText="ROZBROJONY";
-document.getElementById("barInner").style.width="0%";
-log("Alarm rozbrojony");
 }
 
-/* LOG */
-function log(text){
-let arr=JSON.parse(localStorage.getItem("logs")||"[]");
-arr.unshift(new Date().toLocaleString()+" - "+text);
-if(arr.length>300) arr=arr.slice(0,300);
-localStorage.setItem("logs",JSON.stringify(arr));
-renderLogs();
-}
-
-function renderLogs(){
-let arr=JSON.parse(localStorage.getItem("logs")||"[]");
-let el=document.getElementById("logs");
-el.innerHTML="";
-arr.forEach(l=>{
-let div=document.createElement("div");
-div.className="log-item";
-div.innerText=l;
-el.appendChild(div);
-});
-}
-
-function exportLogs(){
-let data=localStorage.getItem("logs")||"[]";
-let blob=new Blob([data],{type:"text/plain"});
-let a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="logs.txt";
-a.click();
-}
-
-/* TASMOTA */
+/* DEVICES */
 function addDevice(){
 let name=document.getElementById("name").value;
 let ip=document.getElementById("ip").value;
 if(!name||!ip) return;
-
 let devices=JSON.parse(localStorage.getItem("devices")||"[]");
 devices.push({id:Date.now(),name,ip});
 localStorage.setItem("devices",JSON.stringify(devices));
 loadDevices();
-log("Dodano "+name);
 }
 
 function loadDevices(){
@@ -351,54 +253,38 @@ let box=document.getElementById("devices");
 box.innerHTML="";
 devices.forEach(d=>{
 let div=document.createElement("div");
-div.className="device";
+div.className="card";
 div.innerHTML=`
-<h4>${d.name}</h4>
-<div id="status-${d.id}">Status...</div>
+<h3>${d.name}</h3>
+<div id="status-${d.id}" class="status">Sprawdzanie...</div>
 <div class="button" onclick="power('${d.ip}','On')">ON</div>
 <div class="button" onclick="power('${d.ip}','Off')">OFF</div>
-<input type="range" min="0" max="100" onchange="dimmer('${d.ip}',this.value)">
-<input type="color" onchange="colorSet('${d.ip}',this.value)">
 `;
 box.appendChild(div);
 checkStatus(d);
-setInterval(()=>checkStatus(d),5000);
 });
-}
-
-async function power(ip,state){
-await fetch(`http://${ip}/cm?cmnd=Power%20${state}`);
-log("Power "+state+" "+ip);
-}
-
-async function dimmer(ip,val){
-await fetch(`http://${ip}/cm?cmnd=Dimmer%20${val}`);
-log("Dimmer "+val+" "+ip);
-}
-
-async function colorSet(ip,val){
-let hex=val.replace("#","");
-await fetch(`http://${ip}/cm?cmnd=Color%20${hex}`);
-log("Color "+hex+" "+ip);
 }
 
 async function checkStatus(d){
 try{
-let r=await fetch(`http://${d.ip}/cm?cmnd=Status%200`);
-let j=await r.json();
-let power=j.Status.Power||j.StatusSTS.POWER;
-document.getElementById("status-"+d.id).innerText="Status: "+power;
+await fetch(`http://${d.ip}/cm?cmnd=Power`);
+document.getElementById("status-"+d.id).innerText="ONLINE";
+document.getElementById("status-"+d.id).className="status online";
 }catch{
-document.getElementById("status-"+d.id).innerText="Offline";
+document.getElementById("status-"+d.id).innerText="OFFLINE";
+document.getElementById("status-"+d.id).className="status offline";
 }
 }
 
-/* CAMERAS */
+function power(ip,state){
+fetch(`http://${ip}/cm?cmnd=Power%20${state}`);
+}
+
+/* CAMS */
 function saveCams(){
 localStorage.setItem("cam1",cam1url.value);
 localStorage.setItem("cam2",cam2url.value);
 loadCams();
-log("Zapisano kamery");
 }
 
 function loadCams(){
@@ -407,6 +293,9 @@ cam2url.value=localStorage.getItem("cam2")||"";
 cam1.src=cam1url.value;
 cam2.src=cam2url.value;
 }
+
+loadDevices();
+loadCams();
 </script>
 
 </body>
