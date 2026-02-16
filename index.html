@@ -3,115 +3,297 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV Secure</title>
+<title>PAV Luxury Villa</title>
 
 <style>
-body{
-margin:0;
-background:black;
-color:#d4af37;
-font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-display:flex;
-align-items:center;
-justify-content:center;
-height:100vh;
+:root{
+--gold:#d4af37;
+--bg:#0b0b0d;
+--card:#151518;
+--green:#29ff8a;
+--red:#ff3b3b;
 }
 
-#lock{
-text-align:center;
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
+body{background:var(--bg);color:white;overflow-x:hidden;}
+
+/* LOADER */
+#loader{
+position:fixed;inset:0;background:black;
+display:flex;align-items:center;justify-content:center;
+z-index:9999;transition:1s;
+}
+#loader.fade{opacity:0;pointer-events:none;}
+.paw{width:140px;animation:pulse 2s infinite ease-in-out;}
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.1)}
+100%{transform:scale(1)}
 }
 
-.display{
-font-size:32px;
-letter-spacing:15px;
-margin-bottom:20px;
+/* LOCK */
+#lockScreen{
+position:fixed;inset:0;background:black;
+display:flex;flex-direction:column;
+align-items:center;justify-content:center;
+z-index:9998;
 }
-
-.grid{
-display:grid;
-grid-template-columns:repeat(3,80px);
+.pinDisplay{
+letter-spacing:15px;font-size:32px;
+margin-bottom:20px;color:var(--gold);
+}
+.keypad{
+display:grid;grid-template-columns:repeat(3,80px);
 gap:15px;
-justify-content:center;
 }
-
 .key{
-height:80px;
-width:80px;
+height:80px;width:80px;
 border-radius:50%;
 background:#111;
-border:1px solid #d4af37;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:24px;
-cursor:pointer;
+border:1px solid rgba(212,175,55,.4);
+display:flex;align-items:center;justify-content:center;
+font-size:24px;cursor:pointer;
+}
+.key:active{background:var(--gold);color:black;}
+
+/* SECTIONS */
+.section{display:none;padding:20px;}
+.section.active{display:block;}
+
+/* CARD */
+.card{
+background:var(--card);
+border-radius:20px;
+padding:20px;margin-bottom:20px;
+border:1px solid rgba(212,175,55,0.2);
+box-shadow:0 0 25px rgba(212,175,55,0.05);
+}
+.card h2{color:var(--gold);margin-bottom:15px;}
+
+button{
+background:var(--gold);
+border:none;padding:10px 15px;
+border-radius:15px;
+cursor:pointer;font-weight:bold;
+margin-top:5px;
 }
 
-.key:active{
-background:#d4af37;
-color:black;
+/* TABBAR */
+.tabbar{
+position:fixed;bottom:0;left:0;right:0;
+background:#111;display:flex;
+justify-content:space-around;
+padding:10px 0;
+border-top:1px solid rgba(255,255,255,.1);
+}
+.tabbar button{
+background:none;color:white;
+}
+.tabbar button.active{
+color:var(--gold);
+}
+
+/* CAMERA GRID */
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+.camera{
+background:black;border-radius:15px;
+overflow:hidden;position:relative;
+}
+.camera iframe{
+width:100%;height:160px;border:none;
+}
+.camera.fullscreen{
+position:fixed;inset:0;z-index:999;
+}
+.camera.fullscreen iframe{height:100%;}
+
+/* INPUT */
+input{
+width:100%;padding:10px;
+border-radius:12px;border:none;
+margin-bottom:10px;background:#222;
+color:white;
 }
 </style>
 </head>
 <body>
 
-<div id="lock">
-<div class="display" id="display">----</div>
-<div class="grid" id="grid"></div>
+<!-- LOADER -->
+<div id="loader">
+<img src="https://i.imgur.com/8Qf4F6S.png" class="paw">
+</div>
+
+<!-- LOCK -->
+<div id="lockScreen">
+<div class="pinDisplay" id="pinDots">----</div>
+<div class="keypad" id="keypad"></div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="section active">
+<div class="card">
+<h2>Alarm</h2>
+<p>Status: <span id="alarmStatus" style="color:var(--green)">ROZBROJONY</span></p>
+<button onclick="arm()">Uzbrój</button>
+<button onclick="requestDisarm()">Rozbrój</button>
+</div>
+</div>
+
+<!-- CAMERAS -->
+<div id="cameras" class="section">
+<div class="card">
+<h2>Kamery</h2>
+<div class="grid" id="cameraGrid"></div>
+</div>
+</div>
+
+<!-- LIGHTING -->
+<div id="lighting" class="section">
+<div class="card">
+<h2>Oświetlenie (Tasmota)</h2>
+<input placeholder="IP urządzenia" id="lightIp">
+<button onclick="lightOn()">ON</button>
+<button onclick="lightOff()">OFF</button>
+<input type="range" min="0" max="100" onchange="setBrightness(this.value)">
+</div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="section">
+<div class="card">
+<h2>Zmień PIN</h2>
+<input type="password" id="oldPin" placeholder="Stary PIN">
+<input type="password" id="newPin" placeholder="Nowy PIN (4 cyfry)">
+<button onclick="changePin()">Zmień PIN</button>
+</div>
+</div>
+
+<!-- TABBAR -->
+<div class="tabbar">
+<button onclick="switchTab('home',this)" class="active">Home</button>
+<button onclick="switchTab('cameras',this)">Kamery</button>
+<button onclick="switchTab('lighting',this)">Światło</button>
+<button onclick="switchTab('settings',this)">Ustawienia</button>
 </div>
 
 <script>
 
-const MASTER_PIN = "1111";
-let input = "";
+/* LOADER */
+window.addEventListener("load",()=>{
+setTimeout(()=>{document.getElementById("loader").classList.add("fade");},1200);
+});
 
-function update(){
-document.getElementById("display").innerText =
-input.padEnd(4,"-");
-}
+/* PIN */
+let entered="";
+let attempts=0;
+let lockedUntil=0;
+let currentPin=localStorage.getItem("pin")||"1111";
 
-function press(val){
-
-if(val === "C"){
-input="";
-update();
-return;
+function renderKeypad(){
+for(let i=1;i<=9;i++) createKey(i);
+createKey("C");createKey(0);createKey("OK");
 }
-
-if(val === "OK"){
-if(input === MASTER_PIN){
-document.body.innerHTML =
-"<h1 style='color:#29ff8a;text-align:center;'>ODBLOCKOWANO</h1>";
-}else{
-alert("Zły PIN");
-}
-input="";
-update();
-return;
-}
-
-if(input.length < 4){
-input += val;
-update();
-}
-}
-
 function createKey(val){
 let d=document.createElement("div");
 d.className="key";
-d.innerText=val;
-d.onclick=()=>press(val);
-document.getElementById("grid").appendChild(d);
+d.textContent=val;
+d.onclick=function(){pressKey(val)};
+document.getElementById("keypad").appendChild(d);
+}
+function pressKey(val){
+if(Date.now()<lockedUntil)return;
+if(val==="C"){entered="";}
+else if(val==="OK"){checkPin();}
+else if(entered.length<4){entered+=val;}
+updateDots();
+}
+function updateDots(){
+document.getElementById("pinDots").textContent=
+entered.padEnd(4,"-");
+}
+function checkPin(){
+if(entered===currentPin){
+document.getElementById("lockScreen").style.display="none";
+}else{
+attempts++;
+if(attempts>=3){
+lockedUntil=Date.now()+60000;
+alert("Blokada 60 sekund");
+}
+}
+entered="";
+updateDots();
+}
+renderKeypad();
+
+/* CHANGE PIN */
+function changePin(){
+let old=document.getElementById("oldPin").value;
+let nw=document.getElementById("newPin").value;
+let stored=localStorage.getItem("pin")||"1111";
+
+if(old!==stored){alert("Zły stary PIN");return;}
+if(nw.length!==4||isNaN(nw)){alert("PIN musi mieć 4 cyfry");return;}
+
+localStorage.setItem("pin",nw);
+currentPin=nw;
+alert("PIN zmieniony");
 }
 
-for(let i=1;i<=9;i++) createKey(i);
-createKey("C");
-createKey(0);
-createKey("OK");
+/* ALARM */
+function arm(){
+document.getElementById("alarmStatus").textContent="UZBROJONY";
+document.getElementById("alarmStatus").style.color="var(--red)";
+}
+function requestDisarm(){
+entered="";
+updateDots();
+document.getElementById("lockScreen").style.display="flex";
+}
 
-update();
+/* CAMERAS */
+let cameras=[
+"https://www.youtube.com/embed/21X5lGlDOfg",
+"https://www.youtube.com/embed/5qap5aO4i9A",
+"https://www.youtube.com/embed/jfKfPfyJRdk",
+"https://www.youtube.com/embed/live_stream?channel=UC4R8DWoMoI7CAwX8_LjQHig"
+];
+function loadCameras(){
+let grid=document.getElementById("cameraGrid");
+cameras.forEach(url=>{
+let div=document.createElement("div");
+div.className="camera";
+div.innerHTML="<iframe src='"+url+"'></iframe>";
+div.onclick=function(){div.classList.toggle("fullscreen");};
+grid.appendChild(div);
+});
+}
+loadCameras();
+
+/* LIGHT */
+function lightOn(){
+fetch("http://"+lightIp.value+"/cm?cmnd=Power%20On");
+}
+function lightOff(){
+fetch("http://"+lightIp.value+"/cm?cmnd=Power%20Off");
+}
+function setBrightness(val){
+fetch("http://"+lightIp.value+"/cm?cmnd=Dimmer%20"+val);
+}
+
+/* TAB */
+function switchTab(id,btn){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+
+document.querySelectorAll(".tabbar button").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+}
 
 </script>
-
 </body>
 </html>
