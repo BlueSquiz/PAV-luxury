@@ -1,15 +1,23 @@
-self.addEventListener("install", function(event) {
-event.waitUntil(
-caches.open("pav-cache").then(function(cache) {
-return cache.addAll(["./"]);
-})
-);
+const CACHE_NAME = "pavplus-v2";
+
+const urlsToCache = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./IMG_5759.png",
+  "./IMG_5760.png"
+];
+
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+  );
 });
 
-self.addEventListener("fetch", function(event) {
-event.respondWith(
-caches.match(event.request).then(function(response) {
-return response || fetch(event.request);
-})
-);
+self.addEventListener("fetch", event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+  );
 });
