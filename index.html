@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+ 3.3</title>
+<title>PAV+ 3.4</title>
 
 <style>
 :root{
@@ -17,7 +17,6 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
 body{background:var(--bg);color:white;overflow:hidden;}
 
-/* SPLASH */
 #splash{
 position:fixed;inset:0;background:black;
 display:flex;align-items:center;justify-content:center;
@@ -31,7 +30,6 @@ z-index:3000;transition:opacity 1s;
 100%{text-shadow:0 0 5px var(--gold);}
 }
 
-/* LOCK */
 #lock{
 position:fixed;inset:0;background:black;
 display:flex;flex-direction:column;
@@ -49,7 +47,6 @@ font-size:24px;cursor:pointer;
 }
 .key:active{background:var(--gold);color:black;}
 
-/* APP */
 #app{display:none;height:100vh;overflow:hidden;}
 
 .section{
@@ -89,7 +86,6 @@ background:var(--gold);color:black;
 font-weight:bold;cursor:pointer;
 }
 
-/* TABBAR */
 .tabbar{
 position:fixed;bottom:0;left:0;right:0;
 height:70px;background:#111;
@@ -104,7 +100,6 @@ font-size:12px;cursor:pointer;transition:.3s;
 .tab span{display:block;font-size:20px;}
 .tab.active span{text-shadow:0 0 10px var(--gold);}
 
-/* ALARM */
 .alarm.armed{
 animation:redPulse 1.5s infinite;
 border-color:var(--red);
@@ -115,7 +110,6 @@ border-color:var(--red);
 100%{box-shadow:0 0 5px var(--red);}
 }
 
-/* CAMERAS */
 .grid{
 display:grid;
 grid-template-columns:1fr 1fr;
@@ -134,39 +128,16 @@ border:none;color:white;border-radius:50%;
 width:22px;height:22px;cursor:pointer;
 }
 
-/* FULLSCREEN */
 .camera.fullscreen{
 position:fixed;inset:0;
 z-index:4000;background:black;
 display:flex;align-items:center;justify-content:center;
-animation:fadeInFull .3s ease;
 }
 .camera.fullscreen iframe{
 height:90%;width:90%;
 border-radius:12px;
 }
-@keyframes fadeInFull{
-from{opacity:0;transform:scale(.95);}
-to{opacity:1;transform:scale(1);}
-}
 
-/* WALL */
-#wall{
-position:fixed;inset:0;background:black;
-display:none;z-index:3500;
-grid-template-columns:1fr 1fr;
-gap:5px;padding:5px;
-}
-#wall.show{display:grid;}
-#wall iframe{width:100%;height:100%;border:none;}
-.closeWall{
-position:fixed;top:15px;right:15px;
-background:var(--gold);
-border:none;padding:6px 12px;
-border-radius:8px;cursor:pointer;
-}
-
-/* LOG */
 .log{
 font-size:12px;
 max-height:200px;
@@ -192,6 +163,8 @@ text-align:left;
 <div class="container">
 <div class="card alarm" id="alarmCard">
 <h3>Alarm</h3>
+<input id="alarmAddress" placeholder="Adres alarmu">
+<button onclick="saveAlarm()">Zapisz adres</button>
 <button onclick="arm()">Uzbrój</button>
 <button onclick="disarm()">Rozbrój</button>
 </div>
@@ -202,6 +175,8 @@ text-align:left;
 <div class="container">
 <div class="card">
 <h3>Oświetlenie</h3>
+<input id="lightAddress" placeholder="Adres oświetlenia">
+<button onclick="saveLight()">Zapisz adres</button>
 <button onclick="log('Światło RELAX')">RELAX</button>
 <button onclick="log('Światło NIGHT')">NIGHT</button>
 <button onclick="log('Światło FULL')">FULL</button>
@@ -212,10 +187,9 @@ text-align:left;
 <div class="section" id="camSection">
 <div class="container">
 <div class="card">
-<h3>Kamery 2x2</h3>
-<input id="camInput" placeholder="Adres embed (https://...)">
+<h3>Kamery (2x2)</h3>
+<input id="camInput" placeholder="Adres embed">
 <button onclick="addCam()">Dodaj</button>
-<button onclick="toggleWall()">Monitoring Wall</button>
 <div class="grid" id="camGrid"></div>
 </div>
 </div>
@@ -246,8 +220,6 @@ text-align:left;
 </div>
 
 </div>
-
-<div id="wall"></div>
 
 <script>
 
@@ -310,8 +282,18 @@ logBox.innerHTML=logs.slice(0,40).join("<br>");
 renderLog();
 
 /* ALARM */
+function saveAlarm(){
+localStorage.setItem("alarmAddress",alarmAddress.value);
+log("Zapisano adres alarmu");
+}
 function arm(){alarmCard.classList.add("armed");log("Alarm uzbrojony");}
 function disarm(){alarmCard.classList.remove("armed");log("Alarm rozbrojony");}
+
+/* LIGHT */
+function saveLight(){
+localStorage.setItem("lightAddress",lightAddress.value);
+log("Zapisano adres oświetlenia");
+}
 
 /* CAMERAS */
 let cams=JSON.parse(localStorage.getItem("cams"))||[];
@@ -324,7 +306,7 @@ div.className="camera";
 if(url){
 div.innerHTML=`<button class="remove" onclick="event.stopPropagation();removeCam(${i})">×</button>
 <iframe src="${url}"></iframe>`;
-div.addEventListener("click",()=>openFullscreen(div));
+div.addEventListener("click",()=>div.classList.toggle("fullscreen"));
 }else{
 div.innerHTML="<div style='display:flex;align-items:center;justify-content:center;height:150px;opacity:.4;'>Brak</div>";
 }
@@ -332,7 +314,7 @@ camGrid.appendChild(div);
 }
 }
 function addCam(){
-if(cams.length>=4){alert("Max 4");return;}
+if(cams.length>=4){alert("Max 4 kamery");return;}
 let url=camInput.value;if(!url)return;
 cams.push(url);
 localStorage.setItem("cams",JSON.stringify(cams));
@@ -347,43 +329,6 @@ renderCams();
 log("Usunięto kamerę");
 }
 renderCams();
-
-/* FULLSCREEN + SWIPE */
-let startY=0;
-function openFullscreen(el){
-el.classList.add("fullscreen");
-
-el.addEventListener("touchstart",e=>{
-startY=e.touches[0].clientY;
-});
-
-el.addEventListener("touchmove",e=>{
-let currentY=e.touches[0].clientY;
-if(currentY-startY>120){
-el.classList.remove("fullscreen");
-}
-});
-}
-
-/* WALL */
-function toggleWall(){
-if(wall.classList.contains("show")){
-wall.classList.remove("show");
-wall.innerHTML="";
-}else{
-wall.innerHTML="";
-cams.forEach(url=>{
-let f=document.createElement("iframe");
-f.src=url;wall.appendChild(f);
-});
-let close=document.createElement("button");
-close.innerText="Wyjście";
-close.className="closeWall";
-close.onclick=()=>toggleWall();
-wall.appendChild(close);
-wall.classList.add("show");
-}
-}
 
 </script>
 </body>
