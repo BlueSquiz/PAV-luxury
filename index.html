@@ -19,6 +19,7 @@
 --red:#ff3b3b;
 --green:#29ff8a;
 }
+
 *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
 body{background:var(--bg);color:white;overflow:hidden;}
 
@@ -36,33 +37,94 @@ body{background:var(--bg);color:white;overflow:hidden;}
 .key:active{background:var(--gold);color:black;}
 
 #app{display:none;height:100vh;overflow:hidden;}
-.section{position:absolute;top:0;left:0;right:0;bottom:70px;display:flex;justify-content:center;padding:20px;overflow:auto;opacity:0;transform:translateX(20px);transition:.35s ease;pointer-events:none;}
+
+.section{
+position:absolute;top:0;left:0;right:0;bottom:70px;
+display:flex;justify-content:center;padding:20px;
+overflow:auto;opacity:0;transform:translateX(20px);
+transition:.35s ease;pointer-events:none;
+}
 .section.active{opacity:1;transform:translateX(0);pointer-events:auto;}
 
 .container{width:100%;max-width:500px;}
-.card{background:var(--card);backdrop-filter:blur(12px);padding:20px;border-radius:15px;border:1px solid var(--border);margin-bottom:20px;text-align:center;}
-h3{margin-bottom:15px;color:var(--gold);}
-input{width:100%;padding:10px;margin-top:10px;border-radius:8px;border:none;background:#111;color:white;text-align:center;}
-button{margin-top:10px;padding:8px 14px;border:none;border-radius:8px;background:var(--gold);color:black;font-weight:bold;cursor:pointer;}
 
-.tabbar{position:fixed;bottom:0;left:0;right:0;height:70px;background:#111;display:flex;justify-content:space-around;align-items:center;border-top:1px solid rgba(255,255,255,.1);}
+.card{
+background:var(--card);
+backdrop-filter:blur(12px);
+padding:20px;border-radius:15px;
+border:1px solid var(--border);
+margin-bottom:20px;text-align:center;
+}
+
+h3{margin-bottom:15px;color:var(--gold);}
+
+input{
+width:100%;padding:10px;margin-top:10px;
+border-radius:8px;border:none;
+background:#111;color:white;text-align:center;
+}
+
+button{
+margin-top:10px;padding:8px 14px;
+border:none;border-radius:8px;
+background:var(--gold);color:black;
+font-weight:bold;cursor:pointer;
+}
+
+/* TABBAR */
+.tabbar{
+position:fixed;bottom:0;left:0;right:0;
+height:70px;background:#111;
+display:flex;justify-content:space-around;
+align-items:center;border-top:1px solid rgba(255,255,255,.1);
+}
 .tab{flex:1;text-align:center;color:#888;font-size:12px;cursor:pointer;transition:.3s;}
 .tab.active{color:var(--gold);transform:translateY(-5px);}
 .tab span{display:block;font-size:20px;}
 .tab.active span{text-shadow:0 0 10px var(--gold);}
 
+/* ALARM */
 .alarm.armed{animation:redPulse 1.5s infinite;border-color:var(--red);}
-@keyframes redPulse{0%{box-shadow:0 0 5px var(--red);}50%{box-shadow:0 0 25px var(--red);}100%{box-shadow:0 0 5px var(--red);}}
+@keyframes redPulse{
+0%{box-shadow:0 0 5px var(--red);}
+50%{box-shadow:0 0 25px var(--red);}
+100%{box-shadow:0 0 5px var(--red);}
+}
 
+/* CAMERAS */
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .camera{background:black;border-radius:10px;overflow:hidden;position:relative;}
 .camera iframe{width:100%;height:150px;border:none;}
-.remove{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:none;color:white;border-radius:50%;width:22px;height:22px;cursor:pointer;}
-.statusDot{position:absolute;top:8px;left:8px;width:12px;height:12px;border-radius:50%;background:gray;}
+.remove{
+position:absolute;top:6px;right:6px;
+background:rgba(0,0,0,.7);
+border:none;color:white;border-radius:50%;
+width:22px;height:22px;cursor:pointer;
+}
+.camera.fullscreen{
+position:fixed;inset:0;z-index:4000;
+background:black;display:flex;
+align-items:center;justify-content:center;
+}
+.camera.fullscreen iframe{
+width:90%;height:90%;
+border-radius:12px;
+}
+
+.statusDot{
+position:absolute;top:8px;left:8px;
+width:12px;height:12px;border-radius:50%;
+background:gray;
+}
 .statusDot.online{background:var(--green);}
 .statusDot.offline{background:var(--red);}
 
-.log{font-size:12px;max-height:200px;overflow:auto;background:#111;padding:10px;border-radius:8px;text-align:left;}
+/* LOG */
+.log{
+font-size:12px;max-height:200px;
+overflow:auto;background:#111;
+padding:10px;border-radius:8px;text-align:left;
+}
 </style>
 </head>
 <body>
@@ -76,17 +138,40 @@ button{margin-top:10px;padding:8px 14px;border:none;border-radius:8px;background
 
 <div id="app">
 
+<!-- ALARM -->
 <div class="section active" id="alarmSection">
 <div class="container">
 <div class="card alarm" id="alarmCard">
 <h3>Alarm</h3>
+
+<input id="alarmAddress" placeholder="Adres alarmu">
+<button onclick="saveAlarm()">Zapisz adres</button>
+
+<input type="time" id="scheduleTime">
+<button onclick="saveSchedule()">Zapisz godzinę</button>
+<button id="toggleScheduleBtn" onclick="toggleSchedule()">Harmonogram: OFF</button>
+
 <button onclick="arm()">Uzbrój</button>
 <button onclick="disarm()">Rozbrój</button>
+
 <div id="mainCameraBox" style="margin-top:15px;"></div>
+
 </div>
 </div>
 </div>
 
+<!-- LIGHT -->
+<div class="section" id="lightSection">
+<div class="container">
+<div class="card">
+<h3>Oświetlenie</h3>
+<input id="lightAddress" placeholder="Adres oświetlenia">
+<button onclick="saveLight()">Zapisz adres</button>
+</div>
+</div>
+</div>
+
+<!-- CAMERAS -->
 <div class="section" id="camSection">
 <div class="container">
 <div class="card">
@@ -98,6 +183,7 @@ button{margin-top:10px;padding:8px 14px;border:none;border-radius:8px;background
 </div>
 </div>
 
+<!-- LOG -->
 <div class="section" id="logSection">
 <div class="container">
 <div class="card">
@@ -109,6 +195,7 @@ button{margin-top:10px;padding:8px 14px;border:none;border-radius:8px;background
 
 <div class="tabbar">
 <div class="tab active" onclick="switchTab('alarmSection',this)"><span>🚨</span>Alarm</div>
+<div class="tab" onclick="switchTab('lightSection',this)"><span>💡</span>Światło</div>
 <div class="tab" onclick="switchTab('camSection',this)"><span>🎥</span>Kamery</div>
 <div class="tab" onclick="switchTab('logSection',this)"><span>📜</span>Log</div>
 </div>
@@ -116,8 +203,11 @@ button{margin-top:10px;padding:8px 14px;border:none;border-radius:8px;background
 </div>
 
 <script>
+
+/* SPLASH */
 setTimeout(()=>splash.classList.add("fade"),1500);
 
+/* PIN */
 const PIN="1111";
 let input="";
 function update(){display.innerText=input.padEnd(4,"-");}
@@ -127,12 +217,13 @@ else if(v==="OK"){if(input===PIN){unlock();}input="";}
 else if(input.length<4){input+=v;}
 update();
 }
-function unlock(){lock.style.display="none";app.style.display="block";}
+function unlock(){lock.style.display="none";app.style.display="block";loadSavedData();}
 for(let i=1;i<=9;i++)create(i);
 create("C");create(0);create("OK");
 function create(v){let d=document.createElement("div");d.className="key";d.innerText=v;d.onclick=()=>press(v);keys.appendChild(d);}
 update();
 
+/* TABS */
 function switchTab(id,el){
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
@@ -140,17 +231,55 @@ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
 el.classList.add("active");
 }
 
+/* LOG */
 function log(txt){
 let logs=JSON.parse(localStorage.getItem("logs"))||[];
 logs.unshift(new Date().toLocaleTimeString()+" - "+txt);
 localStorage.setItem("logs",JSON.stringify(logs));
-logBox.innerHTML=logs.slice(0,30).join("<br>");
+renderLog();
 }
+function renderLog(){
+let logs=JSON.parse(localStorage.getItem("logs"))||[];
+logBox.innerHTML=logs.slice(0,40).join("<br>");
+}
+renderLog();
 
+/* ALARM */
 let armed=false;
-function arm(){armed=true;alarmCard.classList.add("armed");log("Alarm uzbrojony");}
+function saveAlarm(){localStorage.setItem("alarmAddress",alarmAddress.value);log("Zapisano adres alarmu");}
+function arm(auto=false){armed=true;alarmCard.classList.add("armed");log(auto?"Auto uzbrojenie":"Alarm uzbrojony");}
 function disarm(){armed=false;alarmCard.classList.remove("armed");log("Alarm rozbrojony");}
 
+/* HARMONOGRAM */
+let scheduleEnabled=localStorage.getItem("scheduleEnabled")==="true";
+function saveSchedule(){localStorage.setItem("scheduleTime",scheduleTime.value);log("Ustawiono harmonogram");}
+function toggleSchedule(){
+scheduleEnabled=!scheduleEnabled;
+localStorage.setItem("scheduleEnabled",scheduleEnabled);
+toggleScheduleBtn.innerText="Harmonogram: "+(scheduleEnabled?"ON":"OFF");
+}
+function checkSchedule(){
+if(!scheduleEnabled)return;
+let t=localStorage.getItem("scheduleTime");
+if(!t)return;
+let now=new Date();
+let current=now.getHours().toString().padStart(2,"0")+":"+now.getMinutes().toString().padStart(2,"0");
+if(current===t && !armed){arm(true);}
+}
+setInterval(checkSchedule,60000);
+
+/* LIGHT */
+function saveLight(){localStorage.setItem("lightAddress",lightAddress.value);log("Zapisano adres oświetlenia");}
+
+/* LOAD */
+function loadSavedData(){
+alarmAddress.value=localStorage.getItem("alarmAddress")||"";
+lightAddress.value=localStorage.getItem("lightAddress")||"";
+scheduleTime.value=localStorage.getItem("scheduleTime")||"";
+toggleScheduleBtn.innerText="Harmonogram: "+(scheduleEnabled?"ON":"OFF");
+}
+
+/* CAMERAS */
 let cams=JSON.parse(localStorage.getItem("cams"))||[];
 function renderCams(){
 camGrid.innerHTML="";
@@ -159,9 +288,7 @@ let url=cams[i]||"";
 let div=document.createElement("div");
 div.className="camera";
 if(url){
-div.innerHTML=`<span class="statusDot online"></span>
-<button class="remove" onclick="event.stopPropagation();removeCam(${i})">×</button>
-<iframe src="${url}"></iframe>`;
+div.innerHTML=`<button class="remove" onclick="event.stopPropagation();removeCam(${i})">×</button><iframe src="${url}"></iframe>`;
 div.onclick=()=>div.classList.toggle("fullscreen");
 }else{
 div.innerHTML="<div style='height:150px;display:flex;align-items:center;justify-content:center;opacity:.4;'>Brak</div>";
@@ -194,6 +321,7 @@ log("Usunięto kamerę");
 }
 renderCams();
 
+/* PWA */
 if ("serviceWorker" in navigator) {
 window.addEventListener("load", function() {
 navigator.serviceWorker.register("sw.js");
