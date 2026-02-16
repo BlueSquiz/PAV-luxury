@@ -3,270 +3,295 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+</title>
+<title>PAV+ 2.0</title>
 
 <style>
 :root{
 --gold:#d4af37;
 --bg:#0b0b0d;
 --card:#151518;
---text:#ffffff;
+--green:#29ff8a;
+--red:#ff3b3b;
 }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
+body{background:var(--bg);color:white;overflow:hidden;}
+
+/* SPLASH */
+#splash{
+position:fixed;inset:0;background:black;
+display:flex;align-items:center;justify-content:center;
+z-index:2000;
+transition:opacity 1s;
+}
+#splash.fade{opacity:0;pointer-events:none;}
+
+svg{width:160px;}
+.goldPulse{
+animation:gold 2s infinite;
+}
+@keyframes gold{
+0%{filter:drop-shadow(0 0 5px #d4af37);}
+50%{filter:drop-shadow(0 0 25px #d4af37);}
+100%{filter:drop-shadow(0 0 5px #d4af37);}
 }
 
-body{
-background:var(--bg);
-color:var(--text);
+/* LOCK */
+#lock{
+position:fixed;inset:0;background:black;
+display:flex;flex-direction:column;
+align-items:center;justify-content:center;
+z-index:1500;
+transition:.4s;
 }
+#lock.hide{opacity:0;pointer-events:none;}
 
-/* LOCK SCREEN */
-
-#lockScreen{
-position:fixed;
-inset:0;
-background:black;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-z-index:1000;
+.display{
+font-size:32px;letter-spacing:15px;
+margin-bottom:20px;color:var(--gold);
 }
-
-.pinDisplay{
-font-size:32px;
-letter-spacing:15px;
-margin-bottom:25px;
-color:var(--gold);
-}
-
-.keypad{
-display:grid;
-grid-template-columns:repeat(3,80px);
-gap:15px;
-}
-
+.keypad{display:grid;grid-template-columns:repeat(3,80px);gap:15px;}
 .key{
-height:80px;
-width:80px;
-border-radius:50%;
-background:#111;
-border:1px solid var(--gold);
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:24px;
-cursor:pointer;
-transition:.2s;
+height:80px;width:80px;border-radius:50%;
+background:#111;border:1px solid var(--gold);
+display:flex;align-items:center;justify-content:center;
+font-size:24px;cursor:pointer;
 }
-
-.key:active{
-background:var(--gold);
-color:black;
-}
+.key:active{background:var(--gold);color:black;}
 
 /* APP */
-
-#app{
-display:none;
-padding:20px;
-padding-bottom:80px;
-}
-
-.header{
-font-size:24px;
-margin-bottom:20px;
-color:var(--gold);
-}
+#app{display:none;padding:20px;padding-bottom:80px;overflow:auto;height:100vh;}
 
 .card{
 background:var(--card);
-padding:20px;
-border-radius:15px;
+padding:20px;border-radius:15px;
 margin-bottom:20px;
 border:1px solid rgba(212,175,55,.3);
 }
 
-input{
-width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:8px;
-border:none;
-background:#222;
-color:white;
-}
-
 button{
-margin-top:10px;
-padding:10px 15px;
-border:none;
-border-radius:8px;
-background:var(--gold);
-color:black;
-font-weight:bold;
-cursor:pointer;
+margin-top:10px;padding:10px 15px;
+border:none;border-radius:8px;
+background:var(--gold);color:black;
+font-weight:bold;cursor:pointer;
 }
-
-/* CAMERA GRID */
 
 .cameraGrid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
+display:grid;grid-template-columns:1fr 1fr;gap:10px;
 }
-
 .camera{
-background:black;
-border-radius:10px;
-overflow:hidden;
-position:relative;
+background:black;border-radius:10px;
+overflow:hidden;position:relative;
+}
+.camera iframe{width:100%;height:160px;border:none;}
+.camera.fullscreen{position:fixed;inset:0;z-index:999;}
+.camera.fullscreen iframe{height:100%;}
+
+.status{
+position:absolute;top:8px;left:8px;
+width:12px;height:12px;border-radius:50%;
+background:var(--green);
+}
+.removeBtn{
+position:absolute;top:6px;right:6px;
+background:rgba(0,0,0,.7);color:white;
+border:none;border-radius:50%;
+width:24px;height:24px;cursor:pointer;
 }
 
-.camera iframe{
-width:100%;
-height:160px;
-border:none;
+.log{
+max-height:150px;overflow:auto;font-size:12px;
+background:#111;padding:10px;border-radius:8px;
 }
 
-.camera.fullscreen{
-position:fixed;
-inset:0;
-z-index:999;
+.wall{
+position:fixed;inset:0;background:black;
+display:none;z-index:1800;
 }
-
-.camera.fullscreen iframe{
-height:100%;
-}
-
-.footer{
-text-align:center;
-opacity:.4;
-margin-top:30px;
-font-size:12px;
-}
+.wall.show{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.wall iframe{width:100%;height:100%;border:none;}
 </style>
 </head>
 <body>
 
-<!-- LOCK SCREEN -->
-<div id="lockScreen">
-<div class="pinDisplay" id="pinDisplay">----</div>
-<div class="keypad" id="keypad"></div>
+<!-- SPLASH -->
+<div id="splash">
+<svg viewBox="0 0 100 100" class="goldPulse">
+<circle cx="50" cy="50" r="40" stroke="#d4af37" stroke-width="4" fill="none"/>
+<text x="50%" y="55%" text-anchor="middle" fill="#d4af37" font-size="20">PAV+</text>
+</svg>
+</div>
+
+<!-- LOCK -->
+<div id="lock">
+<div class="display" id="display">----</div>
+<div class="keypad" id="keys"></div>
 </div>
 
 <!-- APP -->
 <div id="app">
 
-<div class="header">PAV+ Monitoring</div>
+<div class="card">
+<h3>Alarm</h3>
+<button onclick="arm()">Uzbrój</button>
+<button onclick="disarm()">Rozbrój</button>
+<button onclick="sceneAway()">Away Mode</button>
+<div id="alarmStatus">ROZBROJONY</div>
+</div>
 
 <div class="card">
-<h3>Dodaj kamerę</h3>
-<input id="cameraInput" placeholder="Wklej URL streamu (https://...)">
-<button onclick="addCamera()">Dodaj kamerę</button>
+<h3>Oświetlenie</h3>
+<button onclick="setLight('RELAX')">RELAX</button>
+<button onclick="setLight('NIGHT')">NIGHT</button>
+<button onclick="setLight('FULL')">FULL</button>
+<button onclick="setLight('OFF')">OFF</button>
+<div id="lightStatus">Stan: OFF</div>
 </div>
 
 <div class="card">
-<h3>Kamery (2x2)</h3>
-<div class="cameraGrid" id="cameraGrid"></div>
+<h3>Kamery</h3>
+<input id="camInput" placeholder="URL streamu">
+<button onclick="addCam()">Dodaj</button>
+<button onclick="toggleWall()">Monitoring Wall</button>
+<div class="cameraGrid" id="camGrid"></div>
 </div>
 
-<div class="footer">PAV+ Secure System</div>
+<div class="card">
+<h3>Log zdarzeń</h3>
+<div class="log" id="log"></div>
+</div>
 
 </div>
+
+<div class="wall" id="wall"></div>
 
 <script>
 
-/* PIN SYSTEM */
+/* SPLASH */
+setTimeout(()=>document.getElementById("splash").classList.add("fade"),2000);
 
-const PIN = "1111";
-let entered = "";
+/* PIN */
+const PIN="1111";
+let input="";
+let attempts=0;
+let lockUntil=0;
 
-function updateDisplay(){
-document.getElementById("pinDisplay").innerText =
-entered.padEnd(4,"-");
-}
+function update(){display.innerText=input.padEnd(4,"-");}
 
-function press(val){
-
-if(val === "C"){
-entered="";
-updateDisplay();
-return;
-}
-
-if(val === "OK"){
-if(entered === PIN){
+function press(v){
+if(Date.now()<lockUntil)return;
+if(v==="C"){input="";}
+else if(v==="OK"){
+if(input===PIN){
 unlock();
+attempts=0;
 }else{
-alert("Nieprawidłowy PIN");
+attempts++;
+log("Błędny PIN");
+if(attempts>=3){
+lockUntil=Date.now()+60000;
+alert("Blokada 60 sekund");
 }
-entered="";
-updateDisplay();
-return;
 }
-
-if(entered.length < 4){
-entered += val;
-updateDisplay();
-}
+input="";
+}else if(input.length<4){input+=v;}
+update();
 }
 
 function unlock(){
-document.getElementById("lockScreen").style.display="none";
-document.getElementById("app").style.display="block";
+lock.classList.add("hide");
+app.style.display="block";
+log("Odblokowano system");
+resetTimer();
 }
 
-function createKey(val){
-let key = document.createElement("div");
-key.className="key";
-key.innerText=val;
-key.onclick=()=>press(val);
-document.getElementById("keypad").appendChild(key);
+for(let i=1;i<=9;i++)create(i);
+create("C");create(0);create("OK");
+function create(v){
+let d=document.createElement("div");
+d.className="key";d.innerText=v;
+d.onclick=()=>press(v);
+keys.appendChild(d);
+}
+update();
+
+/* AUTO LOCK */
+let timer;
+function resetTimer(){
+clearTimeout(timer);
+timer=setTimeout(()=>{app.style.display="none";lock.classList.remove("hide");log("Auto blokada");},300000);
+}
+document.addEventListener("click",resetTimer);
+
+/* LOG */
+function log(txt){
+let time=new Date().toLocaleTimeString();
+let entry=time+" - "+txt;
+let logs=JSON.parse(localStorage.getItem("logs"))||[];
+logs.unshift(entry);
+localStorage.setItem("logs",JSON.stringify(logs));
+renderLog();
+}
+function renderLog(){
+let logs=JSON.parse(localStorage.getItem("logs"))||[];
+log.innerHTML=logs.slice(0,20).join("<br>");
+}
+renderLog();
+
+/* ALARM */
+let armed=false;
+function arm(){armed=true;alarmStatus.innerText="UZBROJONY";alarmStatus.style.color="red";log("Alarm uzbrojony");}
+function disarm(){armed=false;alarmStatus.innerText="ROZBROJONY";alarmStatus.style.color="white";log("Alarm rozbrojony");}
+function sceneAway(){arm();setLight("OFF");log("Scena AWAY aktywowana");}
+
+/* LIGHT */
+function setLight(mode){
+lightStatus.innerText="Stan: "+mode;
+log("Światło: "+mode);
 }
 
-for(let i=1;i<=9;i++) createKey(i);
-createKey("C");
-createKey(0);
-createKey("OK");
-
-updateDisplay();
-
-/* CAMERA SYSTEM */
-
-let cameras = JSON.parse(localStorage.getItem("pav_cameras")) || [];
-
-function renderCameras(){
-let grid = document.getElementById("cameraGrid");
-grid.innerHTML = "";
-
-cameras.forEach(url=>{
-let div = document.createElement("div");
+/* CAMERAS */
+let cams=JSON.parse(localStorage.getItem("cams"))||[];
+function renderCams(){
+camGrid.innerHTML="";
+cams.forEach((url,i)=>{
+let div=document.createElement("div");
 div.className="camera";
-div.innerHTML = "<iframe src='"+url+"'></iframe>";
-div.onclick = ()=>div.classList.toggle("fullscreen");
-grid.appendChild(div);
+div.innerHTML=`<span class="status"></span>
+<button class="removeBtn" onclick="removeCam(${i})">×</button>
+<iframe src="${url}"></iframe>`;
+div.onclick=(e)=>{if(!e.target.classList.contains("removeBtn"))div.classList.toggle("fullscreen");};
+camGrid.appendChild(div);
 });
 }
+function addCam(){
+let url=camInput.value;if(!url)return;
+cams.push(url);
+localStorage.setItem("cams",JSON.stringify(cams));
+camInput.value="";
+renderCams();log("Dodano kamerę");
+}
+function removeCam(i){
+cams.splice(i,1);
+localStorage.setItem("cams",JSON.stringify(cams));
+renderCams();log("Usunięto kamerę");
+}
+renderCams();
 
-function addCamera(){
-let url = document.getElementById("cameraInput").value;
-if(!url) return;
-
-cameras.push(url);
-localStorage.setItem("pav_cameras", JSON.stringify(cameras));
-document.getElementById("cameraInput").value="";
-renderCameras();
+/* WALL */
+function toggleWall(){
+if(wall.classList.contains("show")){
+wall.classList.remove("show");
+}else{
+wall.innerHTML="";
+cams.slice(0,4).forEach(url=>{
+let f=document.createElement("iframe");
+f.src=url;wall.appendChild(f);
+});
+wall.classList.add("show");
+}
 }
 
-renderCameras();
-
 </script>
-
 </body>
 </html>
