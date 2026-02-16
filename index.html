@@ -7,8 +7,7 @@
 
 <style>
 :root{
---gold1:#f5d27a;
---gold2:#b88a1f;
+--gold:#f5d27a;
 --green:#5fff8b;
 --red:#ff5757;
 --glass:rgba(255,255,255,.05);
@@ -41,7 +40,7 @@ flex-direction:column;
 .peacock{
 width:120px;
 animation:rotate 4s linear infinite;
-filter:drop-shadow(0 0 20px var(--gold1));
+filter:drop-shadow(0 0 20px var(--gold));
 }
 
 @keyframes rotate{
@@ -85,11 +84,8 @@ margin-bottom:22px;
 }
 
 h3{
-font-size:20px;
 margin-bottom:14px;
-background:linear-gradient(90deg,var(--gold1),var(--gold2));
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
+color:var(--gold);
 }
 
 .button{
@@ -97,7 +93,7 @@ display:inline-block;
 padding:10px 20px;
 border-radius:30px;
 margin-top:10px;
-background:linear-gradient(135deg,var(--gold1),var(--gold2));
+background:linear-gradient(135deg,#f5d27a,#b88a1f);
 color:#000;
 font-weight:600;
 cursor:pointer;
@@ -106,6 +102,28 @@ transition:.3s;
 
 .button:hover{transform:translateY(-2px)}
 
+.status.online{color:var(--green)}
+.status.offline{color:var(--red)}
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:18px;
+background:rgba(0,0,0,.6);
+border:1px solid var(--border);
+color:#fff;
+}
+
+iframe{
+width:100%;
+height:180px;
+border:none;
+border-radius:20px;
+margin-top:12px;
+}
+
+/* TABBAR */
 .tabbar{
 position:fixed;
 bottom:20px;
@@ -129,18 +147,33 @@ transition:.3s;
 }
 
 .tab.active{
-color:var(--gold1);
+color:var(--gold);
 transform:translateY(-5px);
+}
+
+/* FULLSCREEN */
+.fullscreen{
+position:fixed;
+inset:0;
+background:#000;
+z-index:1000;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.fullscreen iframe{
+width:100%;
+height:100%;
+border:none;
 }
 </style>
 </head>
 <body>
 
-<!-- LOADER -->
 <div id="loader">
 <svg class="peacock" viewBox="0 0 100 100">
 <path fill="#f5d27a" d="M50 10 C70 30 70 70 50 90 C30 70 30 30 50 10Z"/>
-<circle cx="50" cy="30" r="6" fill="#b88a1f"/>
 </svg>
 <h3 style="margin-top:20px;">PAV+</h3>
 </div>
@@ -155,19 +188,38 @@ transform:translateY(-5px);
 </div>
 </div>
 
+<!-- CAMERAS -->
+<div id="camsSec" class="section">
+<div class="card">
+<h3>Kamery (4)</h3>
+
+<input id="cam1url" placeholder="URL kamera 1">
+<input id="cam2url" placeholder="URL kamera 2">
+<input id="cam3url" placeholder="URL kamera 3">
+<input id="cam4url" placeholder="URL kamera 4">
+
+<div class="button" onclick="saveCams()">Zapisz</div>
+
+<iframe id="cam1" onclick="fullscreen(this)"></iframe>
+<iframe id="cam2" onclick="fullscreen(this)"></iframe>
+<iframe id="cam3" onclick="fullscreen(this)"></iframe>
+<iframe id="cam4" onclick="fullscreen(this)"></iframe>
+
+</div>
+</div>
+
 <!-- TABBAR -->
 <div class="tabbar">
 <div class="tab active" onclick="switchTab('alarmSec',this)">Alarm</div>
+<div class="tab" onclick="switchTab('camsSec',this)">Kamery</div>
 </div>
 
 <script>
 
 /* LOADER */
-setTimeout(()=>{
-document.getElementById("loader").classList.add("fadeOut");
-},2000);
+setTimeout(()=>{loader.classList.add("fadeOut")},2000);
 
-/* TAB */
+/* TAB SWITCH */
 function switchTab(id,el){
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
@@ -175,10 +227,10 @@ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
 el.classList.add("active");
 }
 
-/* ALARM Z PAMIĘCIĄ */
-const alarmStatusEl = document.getElementById("alarmStatus");
+/* ALARM */
+const alarmStatusEl=document.getElementById("alarmStatus");
 
-function updateAlarmUI(state){
+function updateAlarm(state){
 if(state==="armed"){
 alarmStatusEl.innerText="UZBROJONY";
 alarmStatusEl.style.color="#ff5757";
@@ -190,17 +242,48 @@ alarmStatusEl.style.color="#5fff8b";
 
 function arm(){
 localStorage.setItem("alarmState","armed");
-updateAlarmUI("armed");
+updateAlarm("armed");
 }
 
 function disarm(){
 localStorage.setItem("alarmState","disarmed");
-updateAlarmUI("disarmed");
+updateAlarm("disarmed");
 }
 
-const saved = localStorage.getItem("alarmState") || "disarmed";
-updateAlarmUI(saved);
+updateAlarm(localStorage.getItem("alarmState")||"disarmed");
 
+/* CAMERAS */
+function saveCams(){
+localStorage.setItem("cam1",cam1url.value);
+localStorage.setItem("cam2",cam2url.value);
+localStorage.setItem("cam3",cam3url.value);
+localStorage.setItem("cam4",cam4url.value);
+loadCams();
+}
+
+function loadCams(){
+cam1url.value=localStorage.getItem("cam1")||"";
+cam2url.value=localStorage.getItem("cam2")||"";
+cam3url.value=localStorage.getItem("cam3")||"";
+cam4url.value=localStorage.getItem("cam4")||"";
+
+cam1.src=cam1url.value;
+cam2.src=cam2url.value;
+cam3.src=cam3url.value;
+cam4.src=cam4url.value;
+}
+
+function fullscreen(frame){
+let fs=document.createElement("div");
+fs.className="fullscreen";
+fs.onclick=()=>fs.remove();
+let f=document.createElement("iframe");
+f.src=frame.src;
+fs.appendChild(f);
+document.body.appendChild(fs);
+}
+
+loadCams();
 </script>
 
 </body>
