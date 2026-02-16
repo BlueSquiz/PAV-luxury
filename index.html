@@ -3,12 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+ 3.8 ULTRA MAX</title>
-
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="IMG_5759.png">
-<link rel="apple-touch-icon" href="IMG_5759.png">
-<meta name="theme-color" content="#d4af37">
+<title>PAV+ 3.8 ULTRA FIX</title>
 
 <style>
 :root{
@@ -18,13 +13,11 @@
 --border:rgba(212,175,55,0.3);
 --red:#ff3b3b;
 --green:#29ff8a;
---blue:#4da6ff;
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
 body{background:var(--bg);color:white;overflow:hidden;}
 
-/* SPLASH */
 #splash{
 position:fixed;inset:0;background:black;
 display:flex;align-items:center;justify-content:center;
@@ -37,11 +30,10 @@ animation:glow 2s infinite;
 }
 @keyframes glow{
 0%{text-shadow:0 0 5px var(--gold);}
-50%{text-shadow:0 0 30px var(--gold);}
+50%{text-shadow:0 0 25px var(--gold);}
 100%{text-shadow:0 0 5px var(--gold);}
 }
 
-/* LOCK */
 #lock{
 position:fixed;inset:0;background:black;
 display:flex;flex-direction:column;
@@ -64,33 +56,24 @@ font-size:24px;cursor:pointer;
 }
 .key:active{background:var(--gold);color:black;}
 
-/* APP */
 #app{display:none;height:100vh;overflow:hidden;}
 
 .section{
 position:absolute;top:0;left:0;right:0;bottom:70px;
-display:flex;justify-content:center;
-padding:20px;overflow:auto;
-opacity:0;transform:translateX(20px);
-transition:.35s ease;
+display:flex;justify-content:center;padding:20px;
+overflow:auto;opacity:0;transition:.3s;
 pointer-events:none;
 }
-.section.active{
-opacity:1;transform:translateX(0);
-pointer-events:auto;
-}
+.section.active{opacity:1;pointer-events:auto;}
 
-.container{width:100%;max-width:520px;}
+.container{width:100%;max-width:500px;}
 
 .card{
 background:var(--card);
-backdrop-filter:blur(14px);
-padding:20px;border-radius:16px;
+padding:20px;border-radius:15px;
 border:1px solid var(--border);
 margin-bottom:20px;text-align:center;
 }
-
-h3{margin-bottom:15px;color:var(--gold);}
 
 button{
 margin-top:10px;padding:8px 14px;
@@ -99,30 +82,27 @@ background:var(--gold);color:black;
 font-weight:bold;cursor:pointer;
 }
 
-/* DASHBOARD */
-.statusBadge{
-padding:5px 10px;border-radius:20px;
-font-size:12px;font-weight:bold;
-display:inline-block;margin-bottom:10px;
-}
-.badgeGreen{background:var(--green);color:black;}
-.badgeRed{background:var(--red);}
-.badgeBlue{background:var(--blue);}
-
-/* TABBAR */
 .tabbar{
 position:fixed;bottom:0;left:0;right:0;
 height:70px;background:#111;
 display:flex;justify-content:space-around;
 align-items:center;border-top:1px solid rgba(255,255,255,.1);
 }
-.tab{
-flex:1;text-align:center;color:#888;
-font-size:12px;cursor:pointer;transition:.3s;
+.tab{flex:1;text-align:center;color:#888;font-size:12px;cursor:pointer;}
+.tab.active{color:var(--gold);}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
 }
-.tab.active{color:var(--gold);transform:translateY(-5px);}
-.tab span{display:block;font-size:20px;}
-.tab.active span{text-shadow:0 0 10px var(--gold);}
+
+.camera{
+background:black;border-radius:10px;
+overflow:hidden;position:relative;
+}
+.camera iframe{width:100%;height:120px;border:none;}
+
 </style>
 </head>
 <body>
@@ -136,30 +116,30 @@ font-size:12px;cursor:pointer;transition:.3s;
 
 <div id="app">
 
-<!-- DASHBOARD -->
 <div class="section active" id="dashboardSection">
 <div class="container">
-
 <div class="card">
-<h3>Security Dashboard</h3>
-
-<div id="alarmStatusBadge" class="statusBadge badgeGreen">
-ALARM DISARMED
+<h3>Dashboard</h3>
+<p>Status alarmu: <b id="alarmStatus">ROZBROJONY</b></p>
+<p>Online kamer: <b id="onlineCount">0</b></p>
+</div>
+</div>
 </div>
 
-<p>Online Cameras: <b id="onlineCount">0</b></p>
-<p>Offline Cameras: <b id="offlineCount">0</b></p>
-<p>Failed PIN Attempts: <b id="pinAttempts">0</b></p>
-
+<div class="section" id="camSection">
+<div class="container">
+<div class="card">
+<h3>Kamery</h3>
+<input id="camInput" placeholder="Adres embed">
+<button onclick="addCam()">Dodaj</button>
+<div class="grid" id="camGrid"></div>
 </div>
-
 </div>
 </div>
 
 <div class="tabbar">
-<div class="tab active" onclick="switchTab('dashboardSection',this)">
-<span>📊</span>Dashboard
-</div>
+<div class="tab active" onclick="switchTab('dashboardSection',this)">📊</div>
+<div class="tab" onclick="switchTab('camSection',this)">🎥</div>
 </div>
 
 </div>
@@ -167,65 +147,29 @@ ALARM DISARMED
 <script>
 
 /* SPLASH */
-setTimeout(()=>splash.classList.add("fade"),1500);
+setTimeout(()=>document.getElementById("splash").classList.add("fade"),1500);
 
-/* =========================
-   SECURITY PRO (SHA-256)
-========================= */
-
-let failedAttempts=0;
-let lockUntil=0;
-let lastActivity=Date.now();
-const AUTO_LOCK_TIME=5*60*1000;
-
-async function sha256(str){
-const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-
-async function initPin(){
-if(!localStorage.getItem("pinHash")){
-const hash=await sha256("1111");
-localStorage.setItem("pinHash",hash);
-}
-}
-initPin();
-
+/* PIN */
 let input="";
+let pin="1111";
 
-function update(){display.innerText=input.padEnd(4,"-");}
-
-async function press(v){
-if(Date.now()<lockUntil)return;
-
-if(v==="C"){input="";}
-else if(v==="OK"){
-const hash=await sha256(input);
-if(hash===localStorage.getItem("pinHash")){
-unlock();
-}else{
-failedAttempts++;
-updateDashboard();
-if(failedAttempts>=3){
-lockUntil=Date.now()+60000;
-triggerPanic();
+function update(){
+document.getElementById("display").innerText=input.padEnd(4,"-");
 }
+
+function press(v){
+if(v==="C"){input="";update();return;}
+if(v==="OK"){
+if(input===pin){
+document.getElementById("lock").style.display="none";
+document.getElementById("app").style.display="block";
 }
-input="";
-}else if(input.length<4){input+=v;}
+input="";update();return;
+}
+if(input.length<4){
+input+=v;
 update();
 }
-
-function unlock(){
-lock.style.display="none";
-app.style.display="block";
-failedAttempts=0;
-updateDashboard();
-}
-
-function triggerPanic(){
-document.getElementById("alarmStatusBadge").className="statusBadge badgeRed";
-document.getElementById("alarmStatusBadge").innerText="PANIC MODE";
 }
 
 for(let i=1;i<=9;i++)create(i);
@@ -236,23 +180,9 @@ let d=document.createElement("div");
 d.className="key";
 d.innerText=v;
 d.onclick=()=>press(v);
-keys.appendChild(d);
+document.getElementById("keys").appendChild(d);
 }
 update();
-
-/* AUTO LOCK */
-setInterval(()=>{
-if(app.style.display==="block" && Date.now()-lastActivity>AUTO_LOCK_TIME){
-location.reload();
-}
-},10000);
-
-document.addEventListener("click",()=>lastActivity=Date.now());
-
-/* DASHBOARD UPDATE */
-function updateDashboard(){
-document.getElementById("pinAttempts").innerText=failedAttempts;
-}
 
 /* TABS */
 function switchTab(id,el){
@@ -262,446 +192,29 @@ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
 el.classList.add("active");
 }
 
-/* PWA */
-if("serviceWorker" in navigator){
-window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
+/* CAMERAS */
+let cams=[];
+function addCam(){
+let url=document.getElementById("camInput").value;
+if(!url)return;
+cams.push(url);
+renderCams();
+document.getElementById("camInput").value="";
 }
-
-/* === ULTRA BLOCK 2 HERE === */
-
-/* =========================
-   ALARM PRO
-========================= */
-
-let armed = false;
-let scheduleEnabled = false;
-
-function updateAlarmUI(){
-const badge = document.getElementById("alarmStatusBadge");
-
-if(armed){
-badge.className="statusBadge badgeRed";
-badge.innerText="ALARM ARMED";
-}else{
-badge.className="statusBadge badgeGreen";
-badge.innerText="ALARM DISARMED";
-}
-}
-
-function startArm(){
-let countdown = 5;
-const badge = document.getElementById("alarmStatusBadge");
-
-badge.className="statusBadge badgeBlue";
-badge.innerText="ARMING " + countdown;
-
-const interval = setInterval(()=>{
-countdown--;
-badge.innerText="ARMING " + countdown;
-
-if(countdown<=0){
-clearInterval(interval);
-arm();
-}
-},1000);
-
-playBeep();
-}
-
-function arm(auto=false){
-armed = true;
-updateAlarmUI();
-logEvent(auto ? "Auto Arm" : "Manual Arm");
-}
-
-function disarm(){
-armed = false;
-updateAlarmUI();
-logEvent("Disarmed");
-}
-
-function playBeep(){
-try{
-const ctx = new (window.AudioContext || window.webkitAudioContext)();
-const osc = ctx.createOscillator();
-osc.type="sine";
-osc.frequency.value=800;
-osc.connect(ctx.destination);
-osc.start();
-setTimeout(()=>osc.stop(),200);
-}catch(e){}
-}
-
-/* =========================
-   HARMONOGRAM
-========================= */
-
-function saveSchedule(){
-const val = document.getElementById("scheduleTime").value;
-localStorage.setItem("scheduleTime",val);
-logEvent("Schedule saved: "+val);
-}
-
-function toggleSchedule(){
-scheduleEnabled=!scheduleEnabled;
-logEvent(scheduleEnabled?"Schedule ON":"Schedule OFF");
-}
-
-setInterval(()=>{
-if(!scheduleEnabled) return;
-const t = localStorage.getItem("scheduleTime");
-if(!t) return;
-
-const now = new Date();
-const current = now.getHours().toString().padStart(2,"0")+":"+
-                now.getMinutes().toString().padStart(2,"0");
-
-if(current===t && !armed){
-arm(true);
-}
-},60000);
-
-
-/* =========================
-   CAMERA PRO
-========================= */
-
-let cams = JSON.parse(localStorage.getItem("cams")) || [];
-let onlineCount = 0;
-let offlineCount = 0;
-
-const camSection = document.createElement("div");
-camSection.className="section";
-camSection.id="camSection";
-
-camSection.innerHTML=`
-<div class="container">
-<div class="card">
-<h3>Kamery PRO (6)</h3>
-<input id="camInput" placeholder="Adres embed kamery">
-<button onclick="addCam()">Dodaj</button>
-<button onclick="openWall()">Monitoring Wall</button>
-<div id="camGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:15px;"></div>
-</div>
-</div>
-`;
-
-document.getElementById("app").appendChild(camSection);
-
-const camTab = document.createElement("div");
-camTab.className="tab";
-camTab.innerHTML="<span>🎥</span>Kamery";
-camTab.onclick=function(){switchTab('camSection',this)};
-document.querySelector(".tabbar").appendChild(camTab);
 
 function renderCams(){
-const grid = document.getElementById("camGrid");
+let grid=document.getElementById("camGrid");
 grid.innerHTML="";
-onlineCount=0;
-offlineCount=0;
-
-for(let i=0;i<6;i++){
-let url=cams[i]||"";
-let div=document.createElement("div");
-div.style.position="relative";
-div.style.background="black";
-div.style.borderRadius="10px";
-div.style.overflow="hidden";
-
-if(url){
-div.innerHTML=`
-<div style="position:absolute;top:5px;left:5px;font-size:10px;background:#000;padding:3px 6px;border-radius:10px;">
-Cam ${i+1}
-</div>
-<button style="position:absolute;top:5px;right:5px;background:red;border:none;border-radius:50%;width:20px;height:20px;color:white;"
-onclick="event.stopPropagation();removeCam(${i})">×</button>
-<iframe src="${url}" style="width:100%;height:120px;border:none;"
-onload="setOnline(${i},true)"
-onerror="setOnline(${i},false)"></iframe>
-`;
-
-div.onclick=()=>openFullscreen(url);
-
-}else{
-div.innerHTML="<div style='height:120px;display:flex;align-items:center;justify-content:center;opacity:.4;'>Brak</div>";
-}
-
-grid.appendChild(div);
-}
-
-updateCameraStats();
-}
-
-function setOnline(i,state){
-if(state){onlineCount++;}else{offlineCount++;}
-updateCameraStats();
-if(!state) logEvent("Camera "+(i+1)+" offline");
-}
-
-function updateCameraStats(){
-document.getElementById("onlineCount").innerText=onlineCount;
-document.getElementById("offlineCount").innerText=offlineCount;
-}
-
-function addCam(){
-if(cams.length>=6){alert("Max 6 cameras");return;}
-let url=document.getElementById("camInput").value;
-if(!url) return;
-cams.push(url);
-localStorage.setItem("cams",JSON.stringify(cams));
-document.getElementById("camInput").value="";
-renderCams();
-logEvent("Camera added");
-}
-
-function removeCam(i){
-cams.splice(i,1);
-localStorage.setItem("cams",JSON.stringify(cams));
-renderCams();
-logEvent("Camera removed");
-}
-
-/* FULLSCREEN + SWIPE */
-function openFullscreen(url){
-let wrapper=document.createElement("div");
-wrapper.style.position="fixed";
-wrapper.style.inset="0";
-wrapper.style.background="black";
-wrapper.style.zIndex="6000";
-wrapper.style.display="flex";
-wrapper.style.alignItems="center";
-wrapper.style.justifyContent="center";
-
-wrapper.innerHTML=`<iframe src="${url}" style="width:95%;height:90%;border:none;border-radius:12px;"></iframe>`;
-
-let startY=0;
-wrapper.addEventListener("touchstart",e=>startY=e.touches[0].clientY);
-wrapper.addEventListener("touchmove",e=>{
-if(e.touches[0].clientY-startY>120){
-wrapper.remove();
-}
-});
-wrapper.addEventListener("click",()=>wrapper.remove());
-
-document.body.appendChild(wrapper);
-}
-
-/* MONITORING WALL */
-function openWall(){
-let wall=document.createElement("div");
-wall.style.position="fixed";
-wall.style.inset="0";
-wall.style.background="black";
-wall.style.zIndex="7000";
-wall.style.display="grid";
-wall.style.gridTemplateColumns="repeat(3,1fr)";
-wall.style.gridTemplateRows="repeat(2,1fr)";
-wall.style.gap="4px";
+document.getElementById("onlineCount").innerText=cams.length;
 
 cams.forEach(url=>{
-let iframe=document.createElement("iframe");
-iframe.src=url;
-iframe.style.width="100%";
-iframe.style.height="100%";
-iframe.style.border="none";
-wall.appendChild(iframe);
-});
-
-wall.addEventListener("click",()=>wall.remove());
-document.body.appendChild(wall);
-}
-
-/* =========================
-   LOG INTERNAL
-========================= */
-
-function logEvent(text){
-let logs=JSON.parse(localStorage.getItem("ultraLogs"))||[];
-logs.unshift(new Date().toLocaleTimeString()+" - "+text);
-if(logs.length>100) logs.pop();
-localStorage.setItem("ultraLogs",JSON.stringify(logs));
-}
-
-/* INIT */
-renderCams();
-updateAlarmUI();
-
-/* =========================
-   LIGHTING PRO
-========================= */
-
-let lights = JSON.parse(localStorage.getItem("lights")) || [];
-
-const lightSection = document.createElement("div");
-lightSection.className="section";
-lightSection.id="lightSection";
-
-lightSection.innerHTML=`
-<div class="container">
-<div class="card">
-<h3>Oświetlenie PRO</h3>
-
-<input id="lightInput" placeholder="Adres urządzenia">
-<button onclick="addLight()">Dodaj</button>
-<button onclick="turnOffAll()">Wyłącz wszystko</button>
-
-<div style="margin-top:10px;">
-<button onclick="presetNight()">Noc</button>
-<button onclick="presetHome()">Dom</button>
-<button onclick="presetAway()">Wyjazd</button>
-</div>
-
-<div id="lightList" style="margin-top:15px;"></div>
-</div>
-</div>
-`;
-
-document.getElementById("app").appendChild(lightSection);
-
-const lightTab = document.createElement("div");
-lightTab.className="tab";
-lightTab.innerHTML="<span>💡</span>Światło";
-lightTab.onclick=function(){switchTab('lightSection',this)};
-document.querySelector(".tabbar").appendChild(lightTab);
-
-function renderLights(){
-const list=document.getElementById("lightList");
-list.innerHTML="";
-lights.forEach((l,i)=>{
 let div=document.createElement("div");
-div.style.marginBottom="5px";
-div.innerHTML=`${l}
-<button style="margin-left:5px;background:red;color:white;border:none;border-radius:6px;"
-onclick="removeLight(${i})">×</button>`;
-list.appendChild(div);
+div.className="camera";
+div.innerHTML=`<iframe src="${url}"></iframe>`;
+grid.appendChild(div);
 });
 }
 
-function addLight(){
-let val=document.getElementById("lightInput").value;
-if(!val) return;
-lights.push(val);
-localStorage.setItem("lights",JSON.stringify(lights));
-document.getElementById("lightInput").value="";
-renderLights();
-logEvent("Light added");
-}
-
-function removeLight(i){
-lights.splice(i,1);
-localStorage.setItem("lights",JSON.stringify(lights));
-renderLights();
-logEvent("Light removed");
-}
-
-function turnOffAll(){
-logEvent("All lights OFF");
-}
-
-function presetNight(){
-logEvent("Preset Night");
-}
-
-function presetHome(){
-logEvent("Preset Home");
-}
-
-function presetAway(){
-logEvent("Preset Away");
-}
-
-/* =========================
-   INTEGRATION
-========================= */
-
-const originalArm = arm;
-arm = function(auto=false){
-originalArm(auto);
-presetAway();
-}
-
-/* =========================
-   CHANGE PIN UI
-========================= */
-
-const pinSection = document.createElement("div");
-pinSection.className="section";
-pinSection.id="pinSection";
-
-pinSection.innerHTML=`
-<div class="container">
-<div class="card">
-<h3>Zmień PIN</h3>
-
-<input type="password" id="oldPin" placeholder="Stary PIN">
-<input type="password" id="newPin" placeholder="Nowy PIN (4 cyfry)">
-<button onclick="changePin()">Zmień PIN</button>
-
-</div>
-</div>
-`;
-
-document.getElementById("app").appendChild(pinSection);
-
-const pinTab=document.createElement("div");
-pinTab.className="tab";
-pinTab.innerHTML="<span>🔐</span>PIN";
-pinTab.onclick=function(){switchTab('pinSection',this)};
-document.querySelector(".tabbar").appendChild(pinTab);
-
-async function changePin(){
-let oldVal=document.getElementById("oldPin").value;
-let newVal=document.getElementById("newPin").value;
-
-if(newVal.length!==4 || isNaN(newVal)){
-alert("PIN musi mieć 4 cyfry");
-return;
-}
-
-const oldHash=await sha256(oldVal);
-if(oldHash!==localStorage.getItem("pinHash")){
-alert("Błędny stary PIN");
-return;
-}
-
-const newHash=await sha256(newVal);
-localStorage.setItem("pinHash",newHash);
-alert("PIN zmieniony");
-logEvent("PIN changed");
-}
-
-/* =========================
-   EXPORT FULL LOG
-========================= */
-
-function exportFullLog(){
-let data = localStorage.getItem("ultraLogs") || "";
-let blob = new Blob([data], {type:"text/plain"});
-let a = document.createElement("a");
-a.href = URL.createObjectURL(blob);
-a.download = "pav_ultra_log.txt";
-a.click();
-}
-
-/* =========================
-   MICRO INTERACTIONS
-========================= */
-
-document.querySelectorAll(".tab").forEach(tab=>{
-tab.addEventListener("touchstart",()=>{
-tab.style.transform="scale(0.9)";
-});
-tab.addEventListener("touchend",()=>{
-tab.style.transform="";
-});
-});
-
-/* =========================
-   INIT
-========================= */
-
-renderLights();
-updateAlarmUI();
 </script>
 </body>
 </html>
