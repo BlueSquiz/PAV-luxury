@@ -3,261 +3,291 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+ CINEMATIC</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>PAV+ Luxury Smart</title>
 
 <style>
 :root{
-  --gold1:#F8E7B5;
-  --gold2:#D4AF37;
+--gold:#d4af37;
+--dark:#0a0a0a;
+--card:#111;
+--radius:22px;
 }
+
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system, BlinkMacSystemFont, sans-serif}
 
 body{
-  margin:0;
-  background:#000;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  color:white;
-  overflow-x:hidden;
+background:#000;
+color:#fff;
+overflow:hidden;
 }
 
-/* PARTICLE BACKGROUND */
-canvas#particles{
-  position:fixed;
-  inset:0;
-  z-index:-1;
+/* Splash */
+#splash{
+position:fixed;
+inset:0;
+background:#000;
+display:flex;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+z-index:999;
+animation:fadeOut 2.5s forwards 2s;
 }
 
-/* VIGNETTE */
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:radial-gradient(circle at center,transparent 60%,rgba(0,0,0,.7));
-  pointer-events:none;
+#splash svg{
+width:120px;
+animation:glow 2s infinite alternate;
 }
 
-/* LOGO */
+@keyframes glow{
+from{filter:drop-shadow(0 0 5px var(--gold))}
+to{filter:drop-shadow(0 0 25px var(--gold))}
+}
+
+@keyframes fadeOut{
+to{opacity:0;visibility:hidden}
+}
+
+/* PIN Screen */
+#lockScreen{
+position:fixed;
+inset:0;
+background:#000;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+gap:20px;
+z-index:998;
+}
+
+.pin-dots{
+display:flex;
+gap:15px;
+}
+
+.dot{
+width:15px;height:15px;
+border-radius:50%;
+background:#333;
+}
+
+.dot.active{background:var(--gold)}
+
+.keypad{
+display:grid;
+grid-template-columns:repeat(3,70px);
+gap:15px;
+}
+
+.key{
+height:70px;
+border-radius:50%;
+border:1px solid #333;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+color:#fff;
+transition:.2s;
+}
+
+.key:active{
+background:var(--gold);
+color:#000;
+transform:scale(.9);
+}
+
+/* App */
+#app{
+display:none;
+height:100vh;
+overflow:auto;
+padding:20px;
+}
+
 .logo{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:25px 0;
-  filter:drop-shadow(0 0 15px rgba(212,175,55,.6));
-  animation:logoFloat 5s ease-in-out infinite;
-}
-@keyframes logoFloat{
-  0%{transform:translateY(0);}
-  50%{transform:translateY(-10px);}
-  100%{transform:translateY(0);}
+text-align:center;
+margin-bottom:20px;
+color:var(--gold);
+font-size:28px;
+font-weight:600;
 }
 
-/* CARD */
 .card{
-  margin:15px;
-  padding:20px;
-  border-radius:20px;
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(15px);
-  border:1px solid rgba(212,175,55,.2);
-  transition:.4s ease;
-}
-.card:hover{
-  transform:translateY(-5px) scale(1.01);
+background:var(--card);
+border-radius:var(--radius);
+padding:20px;
+margin-bottom:20px;
+border:1px solid #222;
+box-shadow:0 0 25px rgba(212,175,55,.1);
 }
 
-/* BUTTON */
-button{
-  margin-top:8px;
-  padding:8px 14px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(135deg,var(--gold1),var(--gold2));
-  color:black;
-  font-weight:bold;
-  cursor:pointer;
-  transition:.2s ease;
-}
-button:active{
-  transform:scale(.92);
+.button{
+background:var(--gold);
+color:#000;
+padding:10px 18px;
+border-radius:20px;
+display:inline-block;
+margin-top:10px;
 }
 
-/* INTRUSION */
-.intrusion{
-  animation:redPulse 1s infinite;
-}
-@keyframes redPulse{
-  0%{background:#000;}
-  50%{background:#200000;}
-  100%{background:#000;}
+.tabbar{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+height:70px;
+background:#111;
+display:flex;
+justify-content:space-around;
+align-items:center;
+border-top:1px solid #222;
 }
 
-/* ALERT */
-#alertBar{
-  position:fixed;
-  top:-60px;
-  left:0;
-  right:0;
-  height:60px;
-  background:#300000;
-  color:#ff4444;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:bold;
-  transition:.4s;
-  z-index:50;
+.tab{
+color:#777;
+transition:.3s;
 }
-#alertBar.active{ top:0; }
+
+.tab.active{
+color:var(--gold);
+transform:scale(1.2);
+}
+
+video{
+width:100%;
+border-radius:15px;
+margin-top:10px;
+}
 
 </style>
 </head>
 <body>
 
-<canvas id="particles"></canvas>
-<div id="alertBar"></div>
-
-<!-- ANIMOWANY PAW -->
-<div class="logo">
-<svg viewBox="0 0 200 200" width="120" height="120">
-  <defs>
-    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F8E7B5"/>
-      <stop offset="50%" stop-color="#D4AF37"/>
-      <stop offset="100%" stop-color="#8C6B1F"/>
-    </linearGradient>
-  </defs>
-
-  <path d="M100 40 C20 80,20 160,100 180 C180 160,180 80,100 40 Z"
-        fill="url(#goldGradient)"
-        opacity="0.2">
-    <animate attributeName="d"
-      values="
-      M100 40 C20 80,20 160,100 180 C180 160,180 80,100 40 Z;
-      M100 35 C10 85,10 170,100 185 C190 170,190 85,100 35 Z;
-      M100 40 C20 80,20 160,100 180 C180 160,180 80,100 40 Z"
-      dur="6s"
-      repeatCount="indefinite"/>
-  </path>
-
-  <path d="M100 70 C90 110,95 150,100 165 C105 150,110 110,100 70 Z"
-        fill="url(#goldGradient)"/>
-
-  <circle cx="100" cy="55" r="8" fill="url(#goldGradient)"/>
+<!-- SPLASH -->
+<div id="splash">
+<svg viewBox="0 0 100 100" fill="none">
+<path d="M50 10 L70 80 L50 70 L30 80 Z" fill="#d4af37"/>
 </svg>
+<h2 style="color:#d4af37;margin-top:15px;">PAV+</h2>
+</div>
+
+<!-- LOCK -->
+<div id="lockScreen">
+<h2 style="color:#d4af37;">Wpisz PIN</h2>
+<div class="pin-dots">
+<div class="dot"></div>
+<div class="dot"></div>
+<div class="dot"></div>
+<div class="dot"></div>
+</div>
+
+<div class="keypad">
+<div class="key">1</div>
+<div class="key">2</div>
+<div class="key">3</div>
+<div class="key">4</div>
+<div class="key">5</div>
+<div class="key">6</div>
+<div class="key">7</div>
+<div class="key">8</div>
+<div class="key">9</div>
+<div></div>
+<div class="key">0</div>
+<div class="key" id="del">B</div>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<div class="logo">PAV+</div>
+
+<div class="card" id="dashboard">
+<h3>Security Dashboard</h3>
+<p>Status: <span id="status">BEZPIECZNY</span></p>
+<p>Czas alarmu: <span id="timer">0</span>s</p>
+<div class="button" onclick="arm()">Uzbrój</div>
+<div class="button" onclick="disarm()">Rozbrój</div>
 </div>
 
 <div class="card">
-  <h3>Security Dashboard</h3>
-  <div>Status: <span id="statusText">BEZPIECZNY</span></div>
-  <div>Czas alarmu: <span id="alarmTime">0s</span></div>
-  <button onclick="arm()">Uzbrój</button>
-  <button onclick="disarm()">Rozbrój</button>
+<h3>Kamery</h3>
+<video src="https://www.w3schools.com/html/mov_bbb.mp4" autoplay muted loop></video>
 </div>
 
 <div class="card">
-  <h3>Aktywność</h3>
-  <canvas id="activityChart"></canvas>
+<h3>Aktywność</h3>
+<ul id="log"></ul>
+</div>
+
+</div>
+
+<div class="tabbar">
+<div class="tab active">Alarm</div>
+<div class="tab">Kamery</div>
+<div class="tab">Oświetlenie</div>
 </div>
 
 <script>
+let input="";
+let savedPin=localStorage.getItem("pav_pin")||"1111";
+const dots=document.querySelectorAll(".dot");
 
-/* SERVICE WORKER */
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js');
+document.querySelectorAll(".key").forEach(key=>{
+key.addEventListener("click",()=>{
+if(key.innerText==="B"){
+input=input.slice(0,-1);
+}else{
+if(input.length<4) input+=key.innerText;
 }
-
-/* PARTICLES */
-const canvas=document.getElementById("particles");
-const ctx=canvas.getContext("2d");
-canvas.width=innerWidth;
-canvas.height=innerHeight;
-
-let particles=[];
-for(let i=0;i<50;i++){
-  particles.push({
-    x:Math.random()*canvas.width,
-    y:Math.random()*canvas.height,
-    r:Math.random()*2,
-    dx:(Math.random()-.5)*.5,
-    dy:(Math.random()-.5)*.5
-  });
+updateDots();
+if(input.length===4){
+if(input===savedPin){
+unlock();
+}else{
+input="";
+updateDots();
+alert("Błędny PIN");
 }
-
-function animateParticles(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="rgba(212,175,55,.5)";
-  particles.forEach(p=>{
-    p.x+=p.dx;
-    p.y+=p.dy;
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fill();
-  });
-  requestAnimationFrame(animateParticles);
 }
-animateParticles();
-
-/* CHART */
-const chart=new Chart(document.getElementById('activityChart'),{
-  type:'line',
-  data:{
-    labels:[],
-    datasets:[{
-      data:[],
-      borderColor:'#D4AF37',
-      tension:.3
-    }]
-  },
-  options:{
-    plugins:{legend:{display:false}},
-    scales:{x:{display:false},y:{display:false}}
-  }
+});
 });
 
-function addActivity(){
-  chart.data.labels.push("");
-  chart.data.datasets[0].data.push(Math.random()*5);
-  if(chart.data.labels.length>10){
-    chart.data.labels.shift();
-    chart.data.datasets[0].data.shift();
-  }
-  chart.update();
+function updateDots(){
+dots.forEach((d,i)=>{
+d.classList.toggle("active",i<input.length);
+});
 }
 
-/* INTRUSION */
-let interval;
-let seconds=0;
+function unlock(){
+document.getElementById("lockScreen").style.display="none";
+document.getElementById("app").style.display="block";
+startAutoLock();
+}
+
+let autoLockTimer;
+function startAutoLock(){
+clearTimeout(autoLockTimer);
+autoLockTimer=setTimeout(()=>{
+location.reload();
+},300000);
+}
 
 function arm(){
-  document.body.classList.add("intrusion");
-  statusText.textContent="ALARM AKTYWNY";
-  statusText.style.color="red";
-  showAlert("ALARM AKTYWNY");
-  addActivity();
-  interval=setInterval(()=>{
-    seconds++;
-    alarmTime.textContent=seconds+"s";
-  },1000);
+document.getElementById("status").innerText="UZBROJONY";
+logEvent("Alarm uzbrojony");
 }
 
 function disarm(){
-  document.body.classList.remove("intrusion");
-  statusText.textContent="BEZPIECZNY";
-  statusText.style.color="white";
-  clearInterval(interval);
-  seconds=0;
-  alarmTime.textContent="0s";
-  addActivity();
+document.getElementById("status").innerText="BEZPIECZNY";
+logEvent("Alarm rozbrojony");
 }
 
-function showAlert(text){
-  alertBar.textContent=text;
-  alertBar.classList.add("active");
-  setTimeout(()=>alertBar.classList.remove("active"),3000);
+function logEvent(text){
+let li=document.createElement("li");
+li.innerText=new Date().toLocaleTimeString()+" - "+text;
+document.getElementById("log").prepend(li);
 }
 
 </script>
