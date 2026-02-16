@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+ 3.1</title>
+<title>PAV+ 3.2</title>
 
 <style>
 :root{
@@ -25,10 +25,7 @@ display:flex;align-items:center;justify-content:center;
 z-index:2000;transition:opacity 1s;
 }
 #splash.fade{opacity:0;pointer-events:none;}
-.paw{
-font-size:40px;color:var(--gold);
-animation:glow 2s infinite;
-}
+.paw{font-size:40px;color:var(--gold);animation:glow 2s infinite;}
 @keyframes glow{
 0%{text-shadow:0 0 5px var(--gold);}
 50%{text-shadow:0 0 25px var(--gold);}
@@ -57,6 +54,7 @@ font-size:24px;cursor:pointer;
 #app{display:none;height:100vh;overflow:hidden;}
 .section{
 position:absolute;top:0;left:0;right:0;bottom:70px;
+display:flex;justify-content:center;align-items:flex-start;
 padding:20px;overflow:auto;
 opacity:0;transform:translateX(20px);
 transition:.35s ease;
@@ -67,14 +65,31 @@ opacity:1;transform:translateX(0);
 pointer-events:auto;
 }
 
+.container{
+width:100%;max-width:500px;
+}
+
 .card{
 background:var(--card);
 backdrop-filter:blur(12px);
 padding:20px;border-radius:15px;
 border:1px solid var(--border);
 margin-bottom:20px;
+text-align:center;
 }
-h3{margin-bottom:10px;color:var(--gold);}
+
+h3{margin-bottom:15px;color:var(--gold);}
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+border:none;
+background:#111;
+color:white;
+text-align:center;
+}
 
 button{
 margin-top:10px;padding:8px 14px;
@@ -119,9 +134,11 @@ border-color:var(--red);
 100%{box-shadow:0 0 5px var(--red);}
 }
 
-/* CAMERAS */
+/* CAMERAS 2x2 */
 .grid{
-display:grid;grid-template-columns:1fr 1fr;gap:10px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
 }
 .camera{
 background:black;border-radius:10px;
@@ -158,6 +175,7 @@ max-height:200px;
 overflow:auto;
 background:#111;
 padding:10px;border-radius:8px;
+text-align:left;
 }
 </style>
 </head>
@@ -176,41 +194,51 @@ padding:10px;border-radius:8px;
 
 <!-- ALARM -->
 <div class="section active" id="alarmSection">
+<div class="container">
 <div class="card alarm" id="alarmCard">
 <h3>Alarm</h3>
+<input id="alarmAddress" placeholder="Adres alarmu">
+<button onclick="saveAlarm()">Zapisz adres</button>
 <button onclick="arm()">Uzbrój</button>
 <button onclick="disarm()">Rozbrój</button>
+</div>
 </div>
 </div>
 
 <!-- LIGHT -->
 <div class="section" id="lightSection">
+<div class="container">
 <div class="card">
 <h3>Oświetlenie</h3>
+<input id="lightAddress" placeholder="Adres oświetlenia">
+<button onclick="saveLight()">Zapisz adres</button>
 <button onclick="setLight('RELAX')">RELAX</button>
 <button onclick="setLight('NIGHT')">NIGHT</button>
 <button onclick="setLight('FULL')">FULL</button>
-<button onclick="sceneAway()">AWAY</button>
-<div id="lightStatus">OFF</div>
+</div>
 </div>
 </div>
 
 <!-- CAM -->
 <div class="section" id="camSection">
+<div class="container">
 <div class="card">
-<h3>Kamery</h3>
-<input id="camInput" placeholder="URL streamu">
+<h3>Kamery (2x2)</h3>
+<input id="camInput" placeholder="Adres kamery">
 <button onclick="addCam()">Dodaj</button>
 <button onclick="toggleWall()">Monitoring Wall</button>
 <div class="grid" id="camGrid"></div>
 </div>
 </div>
+</div>
 
 <!-- LOG -->
 <div class="section" id="logSection">
+<div class="container">
 <div class="card">
-<h3>Log zdarzeń</h3>
+<h3>Log</h3>
 <div class="log" id="logBox"></div>
+</div>
 </div>
 </div>
 
@@ -241,7 +269,6 @@ setTimeout(()=>splash.classList.add("fade"),1500);
 /* PIN */
 const PIN="1111";
 let input="", attempts=0, lockUntil=0;
-
 function update(){display.innerText=input.padEnd(4,"-");}
 function press(v){
 if(Date.now()<lockUntil)return;
@@ -249,8 +276,7 @@ if(v==="C"){input="";}
 else if(v==="OK"){
 if(input===PIN){unlock();}
 else{
-attempts++;
-log("Błędny PIN");
+attempts++;log("Błędny PIN");
 if(attempts>=3){
 lockUntil=Date.now()+60000;
 alert("Blokada 60 sekund");
@@ -260,11 +286,7 @@ input="";
 }else if(input.length<4){input+=v;}
 update();
 }
-function unlock(){
-lock.classList.add("hide");
-app.style.display="block";
-log("Odblokowano");
-}
+function unlock(){lock.classList.add("hide");app.style.display="block";log("Odblokowano");}
 for(let i=1;i<=9;i++)create(i);
 create("C");create(0);create("OK");
 function create(v){
@@ -294,47 +316,42 @@ renderLog();
 }
 function renderLog(){
 let logs=JSON.parse(localStorage.getItem("logs"))||[];
-logBox.innerHTML=logs.slice(0,30).join("<br>");
+logBox.innerHTML=logs.slice(0,40).join("<br>");
 }
 renderLog();
 
 /* ALARM */
-let armed=false;
-function arm(){
-armed=true;
-alarmCard.classList.add("armed");
-log("Alarm uzbrojony");
+function saveAlarm(){
+localStorage.setItem("alarmAddress",alarmAddress.value);
+log("Zapisano adres alarmu");
 }
-function disarm(){
-armed=false;
-alarmCard.classList.remove("armed");
-log("Alarm rozbrojony");
-}
+function arm(){alarmCard.classList.add("armed");log("Alarm uzbrojony");}
+function disarm(){alarmCard.classList.remove("armed");log("Alarm rozbrojony");}
 
 /* LIGHT */
-function setLight(mode){
-lightStatus.innerText=mode;
-log("Światło: "+mode);
+function saveLight(){
+localStorage.setItem("lightAddress",lightAddress.value);
+log("Zapisano adres oświetlenia");
 }
-function sceneAway(){
-setLight("OFF");
-arm();
-log("Scena AWAY");
-}
+function setLight(mode){log("Światło: "+mode);}
 
 /* CAMERAS */
 let cams=JSON.parse(localStorage.getItem("cams"))||[];
 function renderCams(){
 camGrid.innerHTML="";
-cams.forEach((url,i)=>{
+for(let i=0;i<4;i++){
+let url=cams[i]||"";
 let div=document.createElement("div");
 div.className="camera";
+if(url){
 div.innerHTML=`<button class="remove" onclick="removeCam(${i})">×</button>
 <iframe src="${url}"></iframe>`;
+}
 camGrid.appendChild(div);
-});
+}
 }
 function addCam(){
+if(cams.length>=4){alert("Max 4 kamery");return;}
 let url=camInput.value;if(!url)return;
 cams.push(url);
 localStorage.setItem("cams",JSON.stringify(cams));
@@ -357,7 +374,7 @@ wall.classList.remove("show");
 wall.innerHTML="";
 }else{
 wall.innerHTML="";
-cams.slice(0,4).forEach(url=>{
+cams.forEach(url=>{
 let f=document.createElement("iframe");
 f.src=url;wall.appendChild(f);
 });
