@@ -1,7 +1,15 @@
-self.addEventListener("install", e=>{
-  self.skipWaiting();
+self.addEventListener("install", function(event) {
+event.waitUntil(
+caches.open("pav-cache").then(function(cache) {
+return cache.addAll(["./"]);
+})
+);
 });
 
-self.addEventListener("fetch", e=>{
-  e.respondWith(fetch(e.request));
+self.addEventListener("fetch", function(event) {
+event.respondWith(
+caches.match(event.request).then(function(response) {
+return response || fetch(event.request);
+})
+);
 });
