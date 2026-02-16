@@ -269,6 +269,439 @@ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
 
 /* === ULTRA BLOCK 2 HERE === */
 
+/* =========================
+   ALARM PRO
+========================= */
+
+let armed = false;
+let scheduleEnabled = false;
+
+function updateAlarmUI(){
+const badge = document.getElementById("alarmStatusBadge");
+
+if(armed){
+badge.className="statusBadge badgeRed";
+badge.innerText="ALARM ARMED";
+}else{
+badge.className="statusBadge badgeGreen";
+badge.innerText="ALARM DISARMED";
+}
+}
+
+function startArm(){
+let countdown = 5;
+const badge = document.getElementById("alarmStatusBadge");
+
+badge.className="statusBadge badgeBlue";
+badge.innerText="ARMING " + countdown;
+
+const interval = setInterval(()=>{
+countdown--;
+badge.innerText="ARMING " + countdown;
+
+if(countdown<=0){
+clearInterval(interval);
+arm();
+}
+},1000);
+
+playBeep();
+}
+
+function arm(auto=false){
+armed = true;
+updateAlarmUI();
+logEvent(auto ? "Auto Arm" : "Manual Arm");
+}
+
+function disarm(){
+armed = false;
+updateAlarmUI();
+logEvent("Disarmed");
+}
+
+function playBeep(){
+try{
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+const osc = ctx.createOscillator();
+osc.type="sine";
+osc.frequency.value=800;
+osc.connect(ctx.destination);
+osc.start();
+setTimeout(()=>osc.stop(),200);
+}catch(e){}
+}
+
+/* =========================
+   HARMONOGRAM
+========================= */
+
+function saveSchedule(){
+const val = document.getElementById("scheduleTime").value;
+localStorage.setItem("scheduleTime",val);
+logEvent("Schedule saved: "+val);
+}
+
+function toggleSchedule(){
+scheduleEnabled=!scheduleEnabled;
+logEvent(scheduleEnabled?"Schedule ON":"Schedule OFF");
+}
+
+setInterval(()=>{
+if(!scheduleEnabled) return;
+const t = localStorage.getItem("scheduleTime");
+if(!t) return;
+
+const now = new Date();
+const current = now.getHours().toString().padStart(2,"0")+":"+
+                now.getMinutes().toString().padStart(2,"0");
+
+if(current===t && !armed){
+arm(true);
+}
+},60000);
+
+
+/* =========================
+   CAMERA PRO
+========================= */
+
+let cams = JSON.parse(localStorage.getItem("cams")) || [];
+let onlineCount = 0;
+let offlineCount = 0;
+
+const camSection = document.createElement("div");
+camSection.className="section";
+camSection.id="camSection";
+
+camSection.innerHTML=`
+<div class="container">
+<div class="card">
+<h3>Kamery PRO (6)</h3>
+<input id="camInput" placeholder="Adres embed kamery">
+<button onclick="addCam()">Dodaj</button>
+<button onclick="openWall()">Monitoring Wall</button>
+<div id="camGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:15px;"></div>
+</div>
+</div>
+`;
+
+document.getElementById("app").appendChild(camSection);
+
+const camTab = document.createElement("div");
+camTab.className="tab";
+camTab.innerHTML="<span>🎥</span>Kamery";
+camTab.onclick=function(){switchTab('camSection',this)};
+document.querySelector(".tabbar").appendChild(camTab);
+
+function renderCams(){
+const grid = document.getElementById("camGrid");
+grid.innerHTML="";
+onlineCount=0;
+offlineCount=0;
+
+for(let i=0;i<6;i++){
+let url=cams[i]||"";
+let div=document.createElement("div");
+div.style.position="relative";
+div.style.background="black";
+div.style.borderRadius="10px";
+div.style.overflow="hidden";
+
+if(url){
+div.innerHTML=`
+<div style="position:absolute;top:5px;left:5px;font-size:10px;background:#000;padding:3px 6px;border-radius:10px;">
+Cam ${i+1}
+</div>
+<button style="position:absolute;top:5px;right:5px;background:red;border:none;border-radius:50%;width:20px;height:20px;color:white;"
+onclick="event.stopPropagation();removeCam(${i})">×</button>
+<iframe src="${url}" style="width:100%;height:120px;border:none;"
+onload="setOnline(${i},true)"
+onerror="setOnline(${i},false)"></iframe>
+`;
+
+div.onclick=()=>openFullscreen(url);
+
+}else{
+div.innerHTML="<div style='height:120px;display:flex;align-items:center;justify-content:center;opacity:.4;'>Brak</div>";
+}
+
+grid.appendChild(div);
+}
+
+updateCameraStats();
+}
+
+function setOnline(i,state){
+if(state){onlineCount++;}else{offlineCount++;}
+updateCameraStats();
+if(!state) logEvent("Camera "+(i+1)+" offline");
+}
+
+function updateCameraStats(){
+document.getElementById("onlineCount").innerText=onlineCount;
+document.getElementById("offlineCount").innerText=offlineCount;
+}
+
+function addCam(){
+if(cams.length>=6){alert("Max 6 cameras");return;}
+let url=document.getElementById("camInput").value;
+if(!url) return;
+cams.push(url);
+localStorage.setItem("cams",JSON.stringify(cams));
+document.getElementById("camInput").value="";
+renderCams();
+logEvent("Camera added");
+}
+
+function removeCam(i){
+cams.splice(i,1);
+localStorage.setItem("cams",JSON.stringify(cams));
+renderCams();
+logEvent("Camera removed");
+}
+
+/* FULLSCREEN + SWIPE */
+function openFullscreen(url){
+let wrapper=document.createElement("div");
+wrapper.style.position="fixed";
+wrapper.style.inset="0";
+wrapper.style.background="black";
+wrapper.style.zIndex="6000";
+wrapper.style.display="flex";
+wrapper.style.alignItems="center";
+wrapper.style.justifyContent="center";
+
+wrapper.innerHTML=`<iframe src="${url}" style="width:95%;height:90%;border:none;border-radius:12px;"></iframe>`;
+
+let startY=0;
+wrapper.addEventListener("touchstart",e=>startY=e.touches[0].clientY);
+wrapper.addEventListener("touchmove",e=>{
+if(e.touches[0].clientY-startY>120){
+wrapper.remove();
+}
+});
+wrapper.addEventListener("click",()=>wrapper.remove());
+
+document.body.appendChild(wrapper);
+}
+
+/* MONITORING WALL */
+function openWall(){
+let wall=document.createElement("div");
+wall.style.position="fixed";
+wall.style.inset="0";
+wall.style.background="black";
+wall.style.zIndex="7000";
+wall.style.display="grid";
+wall.style.gridTemplateColumns="repeat(3,1fr)";
+wall.style.gridTemplateRows="repeat(2,1fr)";
+wall.style.gap="4px";
+
+cams.forEach(url=>{
+let iframe=document.createElement("iframe");
+iframe.src=url;
+iframe.style.width="100%";
+iframe.style.height="100%";
+iframe.style.border="none";
+wall.appendChild(iframe);
+});
+
+wall.addEventListener("click",()=>wall.remove());
+document.body.appendChild(wall);
+}
+
+/* =========================
+   LOG INTERNAL
+========================= */
+
+function logEvent(text){
+let logs=JSON.parse(localStorage.getItem("ultraLogs"))||[];
+logs.unshift(new Date().toLocaleTimeString()+" - "+text);
+if(logs.length>100) logs.pop();
+localStorage.setItem("ultraLogs",JSON.stringify(logs));
+}
+
+/* INIT */
+renderCams();
+updateAlarmUI();
+
+/* =========================
+   LIGHTING PRO
+========================= */
+
+let lights = JSON.parse(localStorage.getItem("lights")) || [];
+
+const lightSection = document.createElement("div");
+lightSection.className="section";
+lightSection.id="lightSection";
+
+lightSection.innerHTML=`
+<div class="container">
+<div class="card">
+<h3>Oświetlenie PRO</h3>
+
+<input id="lightInput" placeholder="Adres urządzenia">
+<button onclick="addLight()">Dodaj</button>
+<button onclick="turnOffAll()">Wyłącz wszystko</button>
+
+<div style="margin-top:10px;">
+<button onclick="presetNight()">Noc</button>
+<button onclick="presetHome()">Dom</button>
+<button onclick="presetAway()">Wyjazd</button>
+</div>
+
+<div id="lightList" style="margin-top:15px;"></div>
+</div>
+</div>
+`;
+
+document.getElementById("app").appendChild(lightSection);
+
+const lightTab = document.createElement("div");
+lightTab.className="tab";
+lightTab.innerHTML="<span>💡</span>Światło";
+lightTab.onclick=function(){switchTab('lightSection',this)};
+document.querySelector(".tabbar").appendChild(lightTab);
+
+function renderLights(){
+const list=document.getElementById("lightList");
+list.innerHTML="";
+lights.forEach((l,i)=>{
+let div=document.createElement("div");
+div.style.marginBottom="5px";
+div.innerHTML=`${l}
+<button style="margin-left:5px;background:red;color:white;border:none;border-radius:6px;"
+onclick="removeLight(${i})">×</button>`;
+list.appendChild(div);
+});
+}
+
+function addLight(){
+let val=document.getElementById("lightInput").value;
+if(!val) return;
+lights.push(val);
+localStorage.setItem("lights",JSON.stringify(lights));
+document.getElementById("lightInput").value="";
+renderLights();
+logEvent("Light added");
+}
+
+function removeLight(i){
+lights.splice(i,1);
+localStorage.setItem("lights",JSON.stringify(lights));
+renderLights();
+logEvent("Light removed");
+}
+
+function turnOffAll(){
+logEvent("All lights OFF");
+}
+
+function presetNight(){
+logEvent("Preset Night");
+}
+
+function presetHome(){
+logEvent("Preset Home");
+}
+
+function presetAway(){
+logEvent("Preset Away");
+}
+
+/* =========================
+   INTEGRATION
+========================= */
+
+const originalArm = arm;
+arm = function(auto=false){
+originalArm(auto);
+presetAway();
+}
+
+/* =========================
+   CHANGE PIN UI
+========================= */
+
+const pinSection = document.createElement("div");
+pinSection.className="section";
+pinSection.id="pinSection";
+
+pinSection.innerHTML=`
+<div class="container">
+<div class="card">
+<h3>Zmień PIN</h3>
+
+<input type="password" id="oldPin" placeholder="Stary PIN">
+<input type="password" id="newPin" placeholder="Nowy PIN (4 cyfry)">
+<button onclick="changePin()">Zmień PIN</button>
+
+</div>
+</div>
+`;
+
+document.getElementById("app").appendChild(pinSection);
+
+const pinTab=document.createElement("div");
+pinTab.className="tab";
+pinTab.innerHTML="<span>🔐</span>PIN";
+pinTab.onclick=function(){switchTab('pinSection',this)};
+document.querySelector(".tabbar").appendChild(pinTab);
+
+async function changePin(){
+let oldVal=document.getElementById("oldPin").value;
+let newVal=document.getElementById("newPin").value;
+
+if(newVal.length!==4 || isNaN(newVal)){
+alert("PIN musi mieć 4 cyfry");
+return;
+}
+
+const oldHash=await sha256(oldVal);
+if(oldHash!==localStorage.getItem("pinHash")){
+alert("Błędny stary PIN");
+return;
+}
+
+const newHash=await sha256(newVal);
+localStorage.setItem("pinHash",newHash);
+alert("PIN zmieniony");
+logEvent("PIN changed");
+}
+
+/* =========================
+   EXPORT FULL LOG
+========================= */
+
+function exportFullLog(){
+let data = localStorage.getItem("ultraLogs") || "";
+let blob = new Blob([data], {type:"text/plain"});
+let a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = "pav_ultra_log.txt";
+a.click();
+}
+
+/* =========================
+   MICRO INTERACTIONS
+========================= */
+
+document.querySelectorAll(".tab").forEach(tab=>{
+tab.addEventListener("touchstart",()=>{
+tab.style.transform="scale(0.9)";
+});
+tab.addEventListener("touchend",()=>{
+tab.style.transform="";
+});
+});
+
+/* =========================
+   INIT
+========================= */
+
+renderLights();
+updateAlarmUI();
 </script>
 </body>
 </html>
