@@ -109,6 +109,9 @@ border:1px solid var(--border);
 color:#fff;
 }
 
+.status.online{color:var(--green)}
+.status.offline{color:var(--red)}
+
 /* TABBAR */
 .tabbar{
 position:fixed;
@@ -144,9 +147,7 @@ grid-template-columns:1fr 1fr;
 gap:12px;
 }
 
-.camBox{
-position:relative;
-}
+.camBox{position:relative;}
 
 iframe{
 width:100%;
@@ -216,7 +217,18 @@ animation:pulseGlow 1.5s infinite;
 </div>
 </div>
 
-<!-- CAMERAS -->
+<!-- OŚWIETLENIE -->
+<div id="lightsSec" class="section">
+<div class="card">
+<h3>Dodaj światło (IP)</h3>
+<input id="lightName" placeholder="Nazwa">
+<input id="lightIP" placeholder="IP np. 192.168.1.50">
+<div class="button" onclick="addLight()">Dodaj</div>
+</div>
+<div id="lightsList"></div>
+</div>
+
+<!-- KAMERY -->
 <div id="camsSec" class="section">
 <div class="card">
 <h3>Monitoring 2x2</h3>
@@ -229,27 +241,22 @@ animation:pulseGlow 1.5s infinite;
 <div class="button" onclick="saveCams()">Zapisz</div>
 
 <div class="grid">
-
 <div class="camBox">
 <div id="status1" class="camStatus">...</div>
 <iframe id="cam1" onclick="fullscreen(this)"></iframe>
 </div>
-
 <div class="camBox">
 <div id="status2" class="camStatus">...</div>
 <iframe id="cam2" onclick="fullscreen(this)"></iframe>
 </div>
-
 <div class="camBox">
 <div id="status3" class="camStatus">...</div>
 <iframe id="cam3" onclick="fullscreen(this)"></iframe>
 </div>
-
 <div class="camBox">
 <div id="status4" class="camStatus">...</div>
 <iframe id="cam4" onclick="fullscreen(this)"></iframe>
 </div>
-
 </div>
 </div>
 </div>
@@ -257,6 +264,7 @@ animation:pulseGlow 1.5s infinite;
 <!-- TABBAR -->
 <div class="tabbar">
 <div class="tab active" onclick="switchTab('alarmSec',this)">Alarm</div>
+<div class="tab" onclick="switchTab('lightsSec',this)">Oświetlenie</div>
 <div class="tab" onclick="switchTab('camsSec',this)">Kamery</div>
 </div>
 
@@ -267,7 +275,7 @@ window.addEventListener("load",()=>{
 setTimeout(()=>{loader.classList.add("fadeOut")},1500);
 });
 
-/* TAB SWITCH */
+/* TAB */
 function switchTab(id,el){
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
@@ -292,19 +300,57 @@ alarmCard.classList.remove("pulse");
 }
 }
 
-function arm(){
-localStorage.setItem("alarmState","armed");
+function arm(){localStorage.setItem("alarmState","armed");renderAlarm();}
+function disarm(){localStorage.setItem("alarmState","disarmed");renderAlarm();}
 renderAlarm();
+
+/* OŚWIETLENIE */
+function addLight(){
+let name=lightName.value;
+let ip=lightIP.value;
+if(!name||!ip)return;
+let lights=JSON.parse(localStorage.getItem("lights")||"[]");
+lights.push({id:Date.now(),name,ip});
+localStorage.setItem("lights",JSON.stringify(lights));
+renderLights();
 }
 
-function disarm(){
-localStorage.setItem("alarmState","disarmed");
-renderAlarm();
+function renderLights(){
+let lights=JSON.parse(localStorage.getItem("lights")||"[]");
+let box=document.getElementById("lightsList");
+box.innerHTML="";
+lights.forEach(l=>{
+let div=document.createElement("div");
+div.className="card";
+div.innerHTML=`
+<h3>${l.name}</h3>
+<div id="lightStatus-${l.id}" class="status">Sprawdzanie...</div>
+<div class="button" onclick="toggleLight('${l.ip}','On')">ON</div>
+<div class="button" onclick="toggleLight('${l.ip}','Off')">OFF</div>
+`;
+box.appendChild(div);
+checkLight(l);
+});
 }
 
-renderAlarm();
+async function checkLight(l){
+try{
+await fetch(`http://${l.ip}/cm?cmnd=Power`);
+document.getElementById("lightStatus-"+l.id).innerText="ONLINE";
+document.getElementById("lightStatus-"+l.id).className="status online";
+}catch{
+document.getElementById("lightStatus-"+l.id).innerText="OFFLINE";
+document.getElementById("lightStatus-"+l.id).className="status offline";
+}
+}
 
-/* CAMERAS */
+function toggleLight(ip,state){
+fetch(`http://${ip}/cm?cmnd=Power%20${state}`);
+}
+
+renderLights();
+
+/* KAMERY */
 function saveCams(){
 for(let i=1;i<=4;i++){
 localStorage.setItem("cam"+i,document.getElementById("cam"+i+"url").value);
@@ -317,26 +363,8 @@ for(let i=1;i<=4;i++){
 let url=localStorage.getItem("cam"+i)||"";
 document.getElementById("cam"+i+"url").value=url;
 document.getElementById("cam"+i).src=url;
-checkCam(i,url);
 }
 }
-
-function checkCam(i,url){
-if(!url){document.getElementById("status"+i).innerText="BRAK";return;}
-fetch(url,{mode:"no-cors"}).then(()=>{
-document.getElementById("status"+i).innerText="ONLINE";
-document.getElementById("status"+i).className="camStatus online";
-}).catch(()=>{
-document.getElementById("status"+i).innerText="OFFLINE";
-document.getElementById("status"+i).className="camStatus offline";
-});
-}
-
-setInterval(()=>{
-for(let i=1;i<=4;i++){
-checkCam(i,localStorage.getItem("cam"+i));
-}
-},5000);
 
 function fullscreen(frame){
 let fs=document.createElement("div");
