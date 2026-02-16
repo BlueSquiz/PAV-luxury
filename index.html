@@ -3,389 +3,387 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+ Ultra</title>
+<title>PAV Luxury Villa</title>
 
 <style>
 :root{
---gold:#f5d27a;
---green:#5fff8b;
---red:#ff5757;
---glass:rgba(255,255,255,.05);
---border:rgba(245,210,122,.25);
+--gold:#d4af37;
+--bg:#0b0b0d;
+--card:#151518;
+--green:#29ff8a;
+--red:#ff3b3b;
 }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;}
 
 body{
-background:
-radial-gradient(circle at 20% 10%, rgba(245,210,122,.08), transparent 50%),
-radial-gradient(circle at 80% 90%, rgba(245,210,122,.06), transparent 50%),
-#050505;
-color:#fff;
-overflow:hidden;
+background:var(--bg);
+color:white;
+overflow-x:hidden;
 }
 
 /* LOADER */
+
 #loader{
 position:fixed;
 inset:0;
-background:#000;
+background:black;
 display:flex;
-justify-content:center;
 align-items:center;
-z-index:999;
-flex-direction:column;
+justify-content:center;
+z-index:9999;
+transition:1s;
 }
 
-.peacock{
-width:120px;
-animation:rotate 4s linear infinite;
-filter:drop-shadow(0 0 20px var(--gold));
+#loader.fade{
+opacity:0;
+pointer-events:none;
 }
 
-@keyframes rotate{
-from{transform:rotate(0)}
-to{transform:rotate(360deg)}
+.paw{
+width:140px;
+animation:pulse 2s infinite ease-in-out;
 }
 
-.fadeOut{
-animation:fadeOut 1s forwards;
-}
-
-@keyframes fadeOut{
-to{opacity:0;visibility:hidden}
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.08)}
+100%{transform:scale(1)}
 }
 
 /* SECTIONS */
+
 .section{
-position:absolute;
-inset:0;
+display:none;
 padding:20px;
-padding-bottom:100px;
-overflow-y:auto;
-opacity:0;
-transform:translateX(40px);
-transition:.4s;
+animation:fadeIn .4s ease;
 }
 
 .section.active{
-opacity:1;
-transform:translateX(0);
+display:block;
 }
 
-/* CARD */
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(10px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+/* CARDS */
+
 .card{
-background:var(--glass);
-backdrop-filter:blur(20px);
-border:1px solid var(--border);
-border-radius:28px;
-padding:22px;
-margin-bottom:22px;
+background:var(--card);
+border-radius:20px;
+padding:20px;
+margin-bottom:20px;
+border:1px solid rgba(212,175,55,0.2);
+box-shadow:0 0 30px rgba(212,175,55,0.05);
 }
 
-h3{
-margin-bottom:14px;
+.card h2{
 color:var(--gold);
+margin-bottom:15px;
 }
 
-button.button{
-display:inline-block;
-padding:10px 20px;
-border-radius:30px;
-margin-top:10px;
-background:linear-gradient(135deg,#f5d27a,#b88a1f);
-color:#000;
-font-weight:600;
-cursor:pointer;
-transition:.3s;
+/* BUTTONS */
+
+button{
+background:var(--gold);
 border:none;
-outline:none;
+padding:12px 18px;
+border-radius:20px;
+margin:5px;
+cursor:pointer;
+font-weight:bold;
 }
 
-button.button:hover{
-transform:translateY(-2px);
-}
-
-input{
-width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:18px;
-background:rgba(0,0,0,.6);
-border:1px solid var(--border);
-color:#fff;
+button:active{
+transform:scale(.95);
 }
 
 /* TABBAR */
+
 .tabbar{
 position:fixed;
-bottom:20px;
-left:20px;
-right:20px;
-height:70px;
-background:var(--glass);
-backdrop-filter:blur(20px);
-border:1px solid var(--border);
-border-radius:40px;
+bottom:0;
+left:0;
+right:0;
+background:#111;
 display:flex;
 justify-content:space-around;
-align-items:center;
+padding:10px 0;
+border-top:1px solid rgba(255,255,255,.1);
 }
 
-.tab{
-flex:1;
-text-align:center;
-color:#aaa;
-transition:.3s;
+.tabbar button{
+background:none;
+color:white;
+font-size:14px;
 }
 
-.tab.active{
+.tabbar button.active{
 color:var(--gold);
-transform:translateY(-5px);
 }
 
 /* CAMERA GRID */
+
 .grid{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:12px;
+gap:10px;
 }
 
-.camBox{
+.camera{
+background:black;
+border-radius:15px;
+overflow:hidden;
 position:relative;
 }
 
-iframe{
+.camera iframe{
 width:100%;
-height:140px;
+height:160px;
 border:none;
-border-radius:16px;
 }
 
-.camStatus{
+.camera .status{
 position:absolute;
 top:8px;
 right:8px;
-padding:4px 8px;
-border-radius:12px;
-font-size:12px;
-background:#111;
+width:10px;
+height:10px;
+border-radius:50%;
+background:var(--green);
 }
 
-.online{color:var(--green);}
-.offline{color:var(--red);}
-
-/* FULLSCREEN */
-.fullscreen{
+.camera.fullscreen{
 position:fixed;
 inset:0;
-background:#000;
-z-index:1000;
-display:flex;
-justify-content:center;
-align-items:center;
+z-index:999;
+background:black;
 }
 
-.fullscreen iframe{
-width:100%;
+.camera.fullscreen iframe{
 height:100%;
+}
+
+/* INPUT */
+
+input{
+width:100%;
+padding:10px;
+border-radius:12px;
 border:none;
+margin-bottom:10px;
+background:#222;
+color:white;
 }
 
-/* ALARM PULSE */
-.pulse{
-animation:pulseGlow 1.5s infinite;
+/* PIN MODAL */
+
+#pinModal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.9);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
 }
 
-@keyframes pulseGlow{
-0%{box-shadow:0 0 10px rgba(255,87,87,.3);}
-50%{box-shadow:0 0 40px rgba(255,87,87,.7);}
-100%{box-shadow:0 0 10px rgba(255,87,87,.3);}
+.pinBox{
+background:#111;
+padding:30px;
+border-radius:20px;
+text-align:center;
+}
+
+.pinBox input{
+text-align:center;
+font-size:22px;
+letter-spacing:10px;
 }
 </style>
 </head>
+
 <body>
 
+<!-- LOADER -->
 <div id="loader">
-<svg class="peacock" viewBox="0 0 100 100">
-<path fill="#f5d27a" d="M50 10 C70 30 70 70 50 90 C30 70 30 30 50 10Z"/>
-</svg>
-<h3 style="margin-top:20px;">PAV+</h3>
+<img src="https://i.imgur.com/8Qf4F6S.png" class="paw">
 </div>
 
-<!-- ALARM -->
-<div id="alarmSec" class="section active">
-<div class="card" id="alarmCard">
-<h3>Alarm</h3>
-<div>Status: <span id="alarmStatus">ROZBROJONY</span></div>
-<button type="button" class="button" onclick="arm()">Uzbrój</button>
-<button type="button" class="button" onclick="disarm()">Rozbrój</button>
+<!-- PIN MODAL -->
+<div id="pinModal">
+<div class="pinBox">
+<h2>Wprowadź PIN</h2>
+<input type="password" id="pinInput" maxlength="4">
+<button onclick="verifyPin()">Zatwierdź</button>
 </div>
 </div>
 
-<!-- OŚWIETLENIE -->
-<div id="lightsSec" class="section">
+<!-- DASHBOARD -->
+<div id="dashboard" class="section active">
 <div class="card">
-<h3>Dodaj światło (IP)</h3>
-<input id="lightName" placeholder="Nazwa">
-<input id="lightIP" placeholder="IP np. 192.168.1.50">
-<button type="button" class="button" onclick="addLight()">Dodaj</button>
-</div>
-<div id="lightsList"></div>
+<h2>Alarm</h2>
+<p>Status: <span id="alarmStatus" style="color:var(--green)">ROZBROJONY</span></p>
+<button onclick="arm()">Uzbrój</button>
+<button onclick="requestDisarm()">Rozbrój</button>
 </div>
 
-<!-- KAMERY -->
-<div id="camsSec" class="section">
 <div class="card">
-<h3>Monitoring 2x2</h3>
+<h2>Log</h2>
+<div id="logs"></div>
+<button onclick="exportLogs()">Eksport</button>
+</div>
+</div>
 
-<input id="cam1url" placeholder="URL kamera 1">
-<input id="cam2url" placeholder="URL kamera 2">
-<input id="cam3url" placeholder="URL kamera 3">
-<input id="cam4url" placeholder="URL kamera 4">
+<!-- CAMERAS -->
+<div id="cameras" class="section">
+<div class="card">
+<h2>Kamery</h2>
+<div class="grid" id="cameraGrid"></div>
+</div>
+</div>
 
-<button type="button" class="button" onclick="saveCams()">Zapisz</button>
-
-<div class="grid">
-<div class="camBox">
-<div id="status1" class="camStatus">...</div>
-<iframe id="cam1" onclick="fullscreen(this)"></iframe>
-</div>
-<div class="camBox">
-<div id="status2" class="camStatus">...</div>
-<iframe id="cam2" onclick="fullscreen(this)"></iframe>
-</div>
-<div class="camBox">
-<div id="status3" class="camStatus">...</div>
-<iframe id="cam3" onclick="fullscreen(this)"></iframe>
-</div>
-<div class="camBox">
-<div id="status4" class="camStatus">...</div>
-<iframe id="cam4" onclick="fullscreen(this)"></iframe>
-</div>
-</div>
+<!-- LIGHTING -->
+<div id="lighting" class="section">
+<div class="card">
+<h2>Oświetlenie (Tasmota)</h2>
+<input placeholder="IP urządzenia" id="lightIp">
+<button onclick="lightOn()">ON</button>
+<button onclick="lightOff()">OFF</button>
+<input type="range" min="0" max="100" id="brightness" onchange="setBrightness(this.value)">
 </div>
 </div>
 
 <!-- TABBAR -->
 <div class="tabbar">
-<div class="tab active" onclick="switchTab('alarmSec',this)">Alarm</div>
-<div class="tab" onclick="switchTab('lightsSec',this)">Oświetlenie</div>
-<div class="tab" onclick="switchTab('camsSec',this)">Kamery</div>
+<button onclick="switchTab('dashboard')" class="active" id="tab-dashboard">Home</button>
+<button onclick="switchTab('cameras')" id="tab-cameras">Kamery</button>
+<button onclick="switchTab('lighting')" id="tab-lighting">Światło</button>
 </div>
 
 <script>
 
-/* LOADER */
+/* LOADER FIX */
 window.addEventListener("load",()=>{
-setTimeout(()=>{loader.classList.add("fadeOut")},1500);
+setTimeout(()=>{
+document.getElementById("loader").classList.add("fade");
+},1500);
 });
 
-/* TAB */
-function switchTab(id,el){
-document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-el.classList.add("active");
+/* STATE */
+
+let alarmArmed=false;
+let logs=JSON.parse(localStorage.getItem("logs"))||[];
+let pin=localStorage.getItem("pin")||"1234";
+let pendingDisarm=false;
+
+/* LOG */
+
+function addLog(text){
+let entry=new Date().toLocaleString()+" - "+text;
+logs.unshift(entry);
+localStorage.setItem("logs",JSON.stringify(logs));
+renderLogs();
 }
+
+function renderLogs(){
+document.getElementById("logs").innerHTML=
+logs.map(l=>"<p>"+l+"</p>").join("");
+}
+renderLogs();
 
 /* ALARM */
-const alarmStatus=document.getElementById("alarmStatus");
-const alarmCard=document.getElementById("alarmCard");
-
-function renderAlarm(){
-const state=localStorage.getItem("alarmState")||"disarmed";
-if(state==="armed"){
-alarmStatus.innerText="UZBROJONY";
-alarmStatus.style.color="#ff5757";
-alarmCard.classList.add("pulse");
-}else{
-alarmStatus.innerText="ROZBROJONY";
-alarmStatus.style.color="#5fff8b";
-alarmCard.classList.remove("pulse");
-}
-}
 
 function arm(){
-localStorage.setItem("alarmState","armed");
-renderAlarm();
+alarmArmed=true;
+document.getElementById("alarmStatus").textContent="UZBROJONY";
+document.getElementById("alarmStatus").style.color="var(--red)";
+addLog("Uzbrojono system");
 }
 
-function disarm(){
-localStorage.setItem("alarmState","disarmed");
-renderAlarm();
+function requestDisarm(){
+pendingDisarm=true;
+document.getElementById("pinModal").style.display="flex";
 }
 
-renderAlarm();
-
-/* OŚWIETLENIE */
-function addLight(){
-let name=lightName.value;
-let ip=lightIP.value;
-if(!name||!ip)return;
-let lights=JSON.parse(localStorage.getItem("lights")||"[]");
-lights.push({id:Date.now(),name,ip});
-localStorage.setItem("lights",JSON.stringify(lights));
-renderLights();
+function verifyPin(){
+let val=document.getElementById("pinInput").value;
+if(val===pin){
+alarmArmed=false;
+document.getElementById("alarmStatus").textContent="ROZBROJONY";
+document.getElementById("alarmStatus").style.color="var(--green)";
+addLog("Rozbrojono system");
+document.getElementById("pinModal").style.display="none";
+document.getElementById("pinInput").value="";
+}else{
+alert("Błędny PIN");
+}
 }
 
-function renderLights(){
-let lights=JSON.parse(localStorage.getItem("lights")||"[]");
-let box=document.getElementById("lightsList");
-box.innerHTML="";
-lights.forEach(l=>{
+/* CAMERAS */
+
+let cameras=[
+"https://www.youtube.com/embed/21X5lGlDOfg",
+"https://www.youtube.com/embed/live_stream?channel=UC4R8DWoMoI7CAwX8_LjQHig",
+"https://www.youtube.com/embed/5qap5aO4i9A",
+"https://www.youtube.com/embed/jfKfPfyJRdk"
+];
+
+function loadCameras(){
+let grid=document.getElementById("cameraGrid");
+grid.innerHTML="";
+cameras.forEach(url=>{
 let div=document.createElement("div");
-div.className="card";
-div.innerHTML=`
-<h3>${l.name}</h3>
-<div id="lightStatus-${l.id}">Sprawdzanie...</div>
-<button type="button" class="button" onclick="toggleLight('${l.ip}','On')">ON</button>
-<button type="button" class="button" onclick="toggleLight('${l.ip}','Off')">OFF</button>
-`;
-box.appendChild(div);
+div.className="camera";
+div.innerHTML="<span class='status'></span><iframe src='"+url+"'></iframe>";
+div.onclick=()=>div.classList.toggle("fullscreen");
+grid.appendChild(div);
 });
 }
+loadCameras();
 
-function toggleLight(ip,state){
-fetch(\`http://\${ip}/cm?cmnd=Power%20\${state}\`);
+/* LIGHTING TASMOTA */
+
+function lightOn(){
+let ip=document.getElementById("lightIp").value;
+fetch("http://"+ip+"/cm?cmnd=Power%20On");
+addLog("Światło ON");
 }
 
-renderLights();
-
-/* KAMERY */
-function saveCams(){
-for(let i=1;i<=4;i++){
-localStorage.setItem("cam"+i,document.getElementById("cam"+i+"url").value);
-}
-loadCams();
+function lightOff(){
+let ip=document.getElementById("lightIp").value;
+fetch("http://"+ip+"/cm?cmnd=Power%20Off");
+addLog("Światło OFF");
 }
 
-function loadCams(){
-for(let i=1;i<=4;i++){
-let url=localStorage.getItem("cam"+i)||"";
-document.getElementById("cam"+i+"url").value=url;
-document.getElementById("cam"+i).src=url;
-}
+function setBrightness(val){
+let ip=document.getElementById("lightIp").value;
+fetch("http://"+ip+"/cm?cmnd=Dimmer%20"+val);
+addLog("Jasność "+val+"%");
 }
 
-function fullscreen(frame){
-let fs=document.createElement("div");
-fs.className="fullscreen";
-fs.onclick=()=>fs.remove();
-let f=document.createElement("iframe");
-f.src=frame.src;
-fs.appendChild(f);
-document.body.appendChild(fs);
+/* TAB SWITCH */
+
+function switchTab(id){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+
+document.querySelectorAll(".tabbar button").forEach(b=>b.classList.remove("active"));
+document.getElementById("tab-"+id).classList.add("active");
 }
 
-loadCams();
+/* EXPORT */
+
+function exportLogs(){
+let blob=new Blob([logs.join("\n")],{type:"text/plain"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="log.txt";
+a.click();
+}
 
 </script>
-
 </body>
 </html>
