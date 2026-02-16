@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAV+ 2.0</title>
+<title>PAV+ 3.0</title>
 
 <style>
 :root{
 --gold:#d4af37;
 --bg:#0b0b0d;
---card:#151518;
+--card:rgba(255,255,255,0.05);
+--border:rgba(212,175,55,0.3);
 --green:#29ff8a;
 --red:#ff3b3b;
 }
@@ -21,19 +22,18 @@ body{background:var(--bg);color:white;overflow:hidden;}
 #splash{
 position:fixed;inset:0;background:black;
 display:flex;align-items:center;justify-content:center;
-z-index:2000;
-transition:opacity 1s;
+z-index:2000;transition:opacity 1s;
 }
 #splash.fade{opacity:0;pointer-events:none;}
-
-svg{width:160px;}
-.goldPulse{
-animation:gold 2s infinite;
+.paw{
+font-size:40px;
+color:var(--gold);
+animation:glow 2s infinite;
 }
-@keyframes gold{
-0%{filter:drop-shadow(0 0 5px #d4af37);}
-50%{filter:drop-shadow(0 0 25px #d4af37);}
-100%{filter:drop-shadow(0 0 5px #d4af37);}
+@keyframes glow{
+0%{text-shadow:0 0 5px var(--gold);}
+50%{text-shadow:0 0 25px var(--gold);}
+100%{text-shadow:0 0 5px var(--gold);}
 }
 
 /* LOCK */
@@ -41,15 +41,10 @@ animation:gold 2s infinite;
 position:fixed;inset:0;background:black;
 display:flex;flex-direction:column;
 align-items:center;justify-content:center;
-z-index:1500;
-transition:.4s;
+z-index:1500;transition:.4s;
 }
 #lock.hide{opacity:0;pointer-events:none;}
-
-.display{
-font-size:32px;letter-spacing:15px;
-margin-bottom:20px;color:var(--gold);
-}
+.display{font-size:32px;letter-spacing:15px;margin-bottom:20px;color:var(--gold);}
 .keypad{display:grid;grid-template-columns:repeat(3,80px);gap:15px;}
 .key{
 height:80px;width:80px;border-radius:50%;
@@ -60,66 +55,90 @@ font-size:24px;cursor:pointer;
 .key:active{background:var(--gold);color:black;}
 
 /* APP */
-#app{display:none;padding:20px;padding-bottom:80px;overflow:auto;height:100vh;}
+#app{display:none;height:100vh;overflow:auto;padding:20px;}
 
 .card{
 background:var(--card);
+backdrop-filter:blur(12px);
 padding:20px;border-radius:15px;
+border:1px solid var(--border);
 margin-bottom:20px;
-border:1px solid rgba(212,175,55,.3);
 }
 
+h3{margin-bottom:10px;color:var(--gold);}
+
 button{
-margin-top:10px;padding:10px 15px;
+margin-top:10px;padding:8px 14px;
 border:none;border-radius:8px;
 background:var(--gold);color:black;
 font-weight:bold;cursor:pointer;
 }
 
-.cameraGrid{
-display:grid;grid-template-columns:1fr 1fr;gap:10px;
+/* ALARM */
+.alarm.armed{
+animation:redPulse 1.5s infinite;
+border-color:var(--red);
+}
+@keyframes redPulse{
+0%{box-shadow:0 0 5px var(--red);}
+50%{box-shadow:0 0 25px var(--red);}
+100%{box-shadow:0 0 5px var(--red);}
+}
+
+/* CAMERA GRID */
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
 }
 .camera{
 background:black;border-radius:10px;
 overflow:hidden;position:relative;
 }
-.camera iframe{width:100%;height:160px;border:none;}
-.camera.fullscreen{position:fixed;inset:0;z-index:999;}
-.camera.fullscreen iframe{height:100%;}
-
+.camera iframe{width:100%;height:150px;border:none;}
 .status{
 position:absolute;top:8px;left:8px;
-width:12px;height:12px;border-radius:50%;
+width:10px;height:10px;border-radius:50%;
 background:var(--green);
 }
-.removeBtn{
+.remove{
 position:absolute;top:6px;right:6px;
-background:rgba(0,0,0,.7);color:white;
-border:none;border-radius:50%;
-width:24px;height:24px;cursor:pointer;
+background:rgba(0,0,0,.7);
+border:none;color:white;border-radius:50%;
+width:22px;height:22px;cursor:pointer;
 }
 
-.log{
-max-height:150px;overflow:auto;font-size:12px;
-background:#111;padding:10px;border-radius:8px;
-}
-
-.wall{
+/* WALL */
+#wall{
 position:fixed;inset:0;background:black;
-display:none;z-index:1800;
+display:none;z-index:1800;padding:5px;
+grid-template-columns:1fr 1fr;
+gap:5px;
 }
-.wall.show{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
-.wall iframe{width:100%;height:100%;border:none;}
+#wall.show{display:grid;}
+#wall iframe{width:100%;height:100%;border:none;}
+.closeWall{
+position:fixed;top:15px;right:15px;
+background:var(--gold);border:none;
+padding:6px 12px;border-radius:8px;
+cursor:pointer;
+}
+
+/* LOG */
+.log{
+font-size:12px;
+max-height:120px;
+overflow:auto;
+background:#111;
+padding:10px;border-radius:8px;
+}
 </style>
 </head>
 <body>
 
 <!-- SPLASH -->
 <div id="splash">
-<svg viewBox="0 0 100 100" class="goldPulse">
-<circle cx="50" cy="50" r="40" stroke="#d4af37" stroke-width="4" fill="none"/>
-<text x="50%" y="55%" text-anchor="middle" fill="#d4af37" font-size="20">PAV+</text>
-</svg>
+<div class="paw">🦚 PAV+</div>
 </div>
 
 <!-- LOCK -->
@@ -132,11 +151,17 @@ display:none;z-index:1800;
 <div id="app">
 
 <div class="card">
+<h3>Dashboard</h3>
+<div>Alarm: <span id="dashAlarm">OFF</span></div>
+<div>Kamery: <span id="dashCam">0</span></div>
+<div>Ostatnie zdarzenie:</div>
+<div id="dashLast" style="opacity:.6;font-size:12px;"></div>
+</div>
+
+<div class="card alarm" id="alarmCard">
 <h3>Alarm</h3>
 <button onclick="arm()">Uzbrój</button>
 <button onclick="disarm()">Rozbrój</button>
-<button onclick="sceneAway()">Away Mode</button>
-<div id="alarmStatus">ROZBROJONY</div>
 </div>
 
 <div class="card">
@@ -144,8 +169,8 @@ display:none;z-index:1800;
 <button onclick="setLight('RELAX')">RELAX</button>
 <button onclick="setLight('NIGHT')">NIGHT</button>
 <button onclick="setLight('FULL')">FULL</button>
-<button onclick="setLight('OFF')">OFF</button>
-<div id="lightStatus">Stan: OFF</div>
+<button onclick="sceneAway()">AWAY (Arm + OFF)</button>
+<div id="lightStatus">OFF</div>
 </div>
 
 <div class="card">
@@ -153,22 +178,22 @@ display:none;z-index:1800;
 <input id="camInput" placeholder="URL streamu">
 <button onclick="addCam()">Dodaj</button>
 <button onclick="toggleWall()">Monitoring Wall</button>
-<div class="cameraGrid" id="camGrid"></div>
+<div class="grid" id="camGrid"></div>
 </div>
 
 <div class="card">
 <h3>Log zdarzeń</h3>
-<div class="log" id="log"></div>
+<div class="log" id="logBox"></div>
 </div>
 
 </div>
 
-<div class="wall" id="wall"></div>
+<div id="wall"></div>
 
 <script>
 
 /* SPLASH */
-setTimeout(()=>document.getElementById("splash").classList.add("fade"),2000);
+setTimeout(()=>splash.classList.add("fade"),1500);
 
 /* PIN */
 const PIN="1111";
@@ -177,17 +202,13 @@ let attempts=0;
 let lockUntil=0;
 
 function update(){display.innerText=input.padEnd(4,"-");}
-
 function press(v){
 if(Date.now()<lockUntil)return;
 if(v==="C"){input="";}
 else if(v==="OK"){
-if(input===PIN){
-unlock();
-attempts=0;
-}else{
-attempts++;
-log("Błędny PIN");
+if(input===PIN){unlock();}
+else{
+attempts++;log("Błędny PIN");
 if(attempts>=3){
 lockUntil=Date.now()+60000;
 alert("Blokada 60 sekund");
@@ -197,14 +218,11 @@ input="";
 }else if(input.length<4){input+=v;}
 update();
 }
-
 function unlock(){
 lock.classList.add("hide");
 app.style.display="block";
-log("Odblokowano system");
-resetTimer();
+log("Odblokowano");
 }
-
 for(let i=1;i<=9;i++)create(i);
 create("C");create(0);create("OK");
 function create(v){
@@ -215,14 +233,6 @@ keys.appendChild(d);
 }
 update();
 
-/* AUTO LOCK */
-let timer;
-function resetTimer(){
-clearTimeout(timer);
-timer=setTimeout(()=>{app.style.display="none";lock.classList.remove("hide");log("Auto blokada");},300000);
-}
-document.addEventListener("click",resetTimer);
-
 /* LOG */
 function log(txt){
 let time=new Date().toLocaleTimeString();
@@ -231,23 +241,38 @@ let logs=JSON.parse(localStorage.getItem("logs"))||[];
 logs.unshift(entry);
 localStorage.setItem("logs",JSON.stringify(logs));
 renderLog();
+dashLast.innerText=entry;
 }
 function renderLog(){
 let logs=JSON.parse(localStorage.getItem("logs"))||[];
-log.innerHTML=logs.slice(0,20).join("<br>");
+logBox.innerHTML=logs.slice(0,20).join("<br>");
 }
 renderLog();
 
 /* ALARM */
 let armed=false;
-function arm(){armed=true;alarmStatus.innerText="UZBROJONY";alarmStatus.style.color="red";log("Alarm uzbrojony");}
-function disarm(){armed=false;alarmStatus.innerText="ROZBROJONY";alarmStatus.style.color="white";log("Alarm rozbrojony");}
-function sceneAway(){arm();setLight("OFF");log("Scena AWAY aktywowana");}
+function arm(){
+armed=true;
+alarmCard.classList.add("armed");
+dashAlarm.innerText="ON";
+log("Alarm uzbrojony");
+}
+function disarm(){
+armed=false;
+alarmCard.classList.remove("armed");
+dashAlarm.innerText="OFF";
+log("Alarm rozbrojony");
+}
 
 /* LIGHT */
 function setLight(mode){
-lightStatus.innerText="Stan: "+mode;
+lightStatus.innerText=mode;
 log("Światło: "+mode);
+}
+function sceneAway(){
+setLight("OFF");
+arm();
+log("Scena AWAY");
 }
 
 /* CAMERAS */
@@ -257,24 +282,27 @@ camGrid.innerHTML="";
 cams.forEach((url,i)=>{
 let div=document.createElement("div");
 div.className="camera";
-div.innerHTML=`<span class="status"></span>
-<button class="removeBtn" onclick="removeCam(${i})">×</button>
+div.innerHTML=`
+<span class="status"></span>
+<button class="remove" onclick="removeCam(${i})">×</button>
 <iframe src="${url}"></iframe>`;
-div.onclick=(e)=>{if(!e.target.classList.contains("removeBtn"))div.classList.toggle("fullscreen");};
 camGrid.appendChild(div);
 });
+dashCam.innerText=cams.length;
 }
 function addCam(){
 let url=camInput.value;if(!url)return;
 cams.push(url);
 localStorage.setItem("cams",JSON.stringify(cams));
 camInput.value="";
-renderCams();log("Dodano kamerę");
+renderCams();
+log("Dodano kamerę");
 }
 function removeCam(i){
 cams.splice(i,1);
 localStorage.setItem("cams",JSON.stringify(cams));
-renderCams();log("Usunięto kamerę");
+renderCams();
+log("Usunięto kamerę");
 }
 renderCams();
 
@@ -282,12 +310,19 @@ renderCams();
 function toggleWall(){
 if(wall.classList.contains("show")){
 wall.classList.remove("show");
+wall.innerHTML="";
 }else{
 wall.innerHTML="";
 cams.slice(0,4).forEach(url=>{
 let f=document.createElement("iframe");
-f.src=url;wall.appendChild(f);
+f.src=url;
+wall.appendChild(f);
 });
+let close=document.createElement("button");
+close.innerText="Wyjście";
+close.className="closeWall";
+close.onclick=()=>toggleWall();
+wall.appendChild(close);
 wall.classList.add("show");
 }
 }
