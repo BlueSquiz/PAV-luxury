@@ -102,9 +102,6 @@ transition:.3s;
 
 .button:hover{transform:translateY(-2px)}
 
-.status.online{color:var(--green)}
-.status.offline{color:var(--red)}
-
 input{
 width:100%;
 padding:12px;
@@ -217,7 +214,11 @@ border:none;
 <script>
 
 /* LOADER */
-setTimeout(()=>{loader.classList.add("fadeOut")},2000);
+window.addEventListener("load",()=>{
+setTimeout(()=>{
+document.getElementById("loader").classList.add("fadeOut");
+},1500);
+});
 
 /* TAB SWITCH */
 function switchTab(id,el){
@@ -230,7 +231,8 @@ el.classList.add("active");
 /* ALARM */
 const alarmStatusEl=document.getElementById("alarmStatus");
 
-function updateAlarm(state){
+function renderAlarm(){
+const state=localStorage.getItem("alarmState")||"disarmed";
 if(state==="armed"){
 alarmStatusEl.innerText="UZBROJONY";
 alarmStatusEl.style.color="#ff5757";
@@ -242,15 +244,15 @@ alarmStatusEl.style.color="#5fff8b";
 
 function arm(){
 localStorage.setItem("alarmState","armed");
-updateAlarm("armed");
+renderAlarm();
 }
 
 function disarm(){
 localStorage.setItem("alarmState","disarmed");
-updateAlarm("disarmed");
+renderAlarm();
 }
 
-updateAlarm(localStorage.getItem("alarmState")||"disarmed");
+renderAlarm();
 
 /* CAMERAS */
 function saveCams(){
@@ -284,6 +286,7 @@ document.body.appendChild(fs);
 }
 
 loadCams();
+
 </script>
 
 </body>
