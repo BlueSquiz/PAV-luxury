@@ -14,7 +14,7 @@
 --red:#ff3b3b;
 }
 
-*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
 
 body{
 background:var(--bg);
@@ -47,8 +47,51 @@ animation:pulse 2s infinite ease-in-out;
 
 @keyframes pulse{
 0%{transform:scale(1)}
-50%{transform:scale(1.08)}
+50%{transform:scale(1.1)}
 100%{transform:scale(1)}
+}
+
+/* LOCK SCREEN */
+
+#lockScreen{
+position:fixed;
+inset:0;
+background:#000;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:9998;
+}
+
+.pinDisplay{
+letter-spacing:15px;
+font-size:30px;
+margin-bottom:20px;
+color:var(--gold);
+}
+
+.keypad{
+display:grid;
+grid-template-columns:repeat(3,70px);
+gap:15px;
+}
+
+.key{
+background:#111;
+border:1px solid rgba(212,175,55,.3);
+border-radius:50%;
+height:70px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+cursor:pointer;
+}
+
+.key:active{
+background:var(--gold);
+color:black;
 }
 
 /* SECTIONS */
@@ -89,15 +132,11 @@ margin-bottom:15px;
 button{
 background:var(--gold);
 border:none;
-padding:12px 18px;
-border-radius:20px;
-margin:5px;
+padding:10px 15px;
+border-radius:15px;
 cursor:pointer;
 font-weight:bold;
-}
-
-button:active{
-transform:scale(.95);
+margin-top:5px;
 }
 
 /* TABBAR */
@@ -117,7 +156,6 @@ border-top:1px solid rgba(255,255,255,.1);
 .tabbar button{
 background:none;
 color:white;
-font-size:14px;
 }
 
 .tabbar button.active{
@@ -141,7 +179,7 @@ position:relative;
 
 .camera iframe{
 width:100%;
-height:160px;
+height:150px;
 border:none;
 }
 
@@ -159,7 +197,6 @@ background:var(--green);
 position:fixed;
 inset:0;
 z-index:999;
-background:black;
 }
 
 .camera.fullscreen iframe{
@@ -177,31 +214,6 @@ margin-bottom:10px;
 background:#222;
 color:white;
 }
-
-/* PIN MODAL */
-
-#pinModal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.9);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:9999;
-}
-
-.pinBox{
-background:#111;
-padding:30px;
-border-radius:20px;
-text-align:center;
-}
-
-.pinBox input{
-text-align:center;
-font-size:22px;
-letter-spacing:10px;
-}
 </style>
 </head>
 
@@ -212,17 +224,14 @@ letter-spacing:10px;
 <img src="https://i.imgur.com/8Qf4F6S.png" class="paw">
 </div>
 
-<!-- PIN MODAL -->
-<div id="pinModal">
-<div class="pinBox">
-<h2>Wprowadź PIN</h2>
-<input type="password" id="pinInput" maxlength="4">
-<button onclick="verifyPin()">Zatwierdź</button>
-</div>
+<!-- LOCK -->
+<div id="lockScreen">
+<div class="pinDisplay" id="pinDots">----</div>
+<div class="keypad" id="keypad"></div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="section active">
+<!-- HOME -->
+<div id="home" class="section active">
 <div class="card">
 <h2>Alarm</h2>
 <p>Status: <span id="alarmStatus" style="color:var(--green)">ROZBROJONY</span></p>
@@ -233,7 +242,6 @@ letter-spacing:10px;
 <div class="card">
 <h2>Log</h2>
 <div id="logs"></div>
-<button onclick="exportLogs()">Eksport</button>
 </div>
 </div>
 
@@ -248,92 +256,134 @@ letter-spacing:10px;
 <!-- LIGHTING -->
 <div id="lighting" class="section">
 <div class="card">
-<h2>Oświetlenie (Tasmota)</h2>
-<input placeholder="IP urządzenia" id="lightIp">
+<h2>Oświetlenie</h2>
+<input placeholder="IP Tasmota" id="lightIp">
 <button onclick="lightOn()">ON</button>
 <button onclick="lightOff()">OFF</button>
-<input type="range" min="0" max="100" id="brightness" onchange="setBrightness(this.value)">
+<input type="range" min="0" max="100" onchange="setBrightness(this.value)">
+</div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="section">
+<div class="card">
+<h2>Zmień PIN</h2>
+<input type="password" id="oldPin" placeholder="Stary PIN">
+<input type="password" id="newPin" placeholder="Nowy PIN">
+<button onclick="changePin()">Zmień PIN</button>
 </div>
 </div>
 
 <!-- TABBAR -->
 <div class="tabbar">
-<button onclick="switchTab('dashboard')" class="active" id="tab-dashboard">Home</button>
-<button onclick="switchTab('cameras')" id="tab-cameras">Kamery</button>
-<button onclick="switchTab('lighting')" id="tab-lighting">Światło</button>
+<button onclick="switchTab('home')" class="active">Home</button>
+<button onclick="switchTab('cameras')">Kamery</button>
+<button onclick="switchTab('lighting')">Światło</button>
+<button onclick="switchTab('settings')">Ustawienia</button>
 </div>
 
 <script>
 
-/* LOADER FIX */
+/* LOADER */
 window.addEventListener("load",()=>{
 setTimeout(()=>{
 document.getElementById("loader").classList.add("fade");
 },1500);
 });
 
-/* STATE */
+/* PIN SYSTEM */
 
-let alarmArmed=false;
-let logs=JSON.parse(localStorage.getItem("logs"))||[];
 let pin=localStorage.getItem("pin")||"1234";
-let pendingDisarm=false;
+let entered="";
+let attempts=0;
+let lockedUntil=0;
 
-/* LOG */
-
-function addLog(text){
-let entry=new Date().toLocaleString()+" - "+text;
-logs.unshift(entry);
-localStorage.setItem("logs",JSON.stringify(logs));
-renderLogs();
+function renderKeypad(){
+let kp=document.getElementById("keypad");
+for(let i=1;i<=9;i++) addKey(i);
+addKey("C");
+addKey(0);
+addKey("OK");
 }
 
-function renderLogs(){
-document.getElementById("logs").innerHTML=
-logs.map(l=>"<p>"+l+"</p>").join("");
+function addKey(val){
+let d=document.createElement("div");
+d.className="key";
+d.innerText=val;
+d.onclick=()=>pressKey(val);
+document.getElementById("keypad").appendChild(d);
 }
-renderLogs();
+
+function pressKey(val){
+if(Date.now()<lockedUntil)return;
+if(val==="C"){entered="";}
+else if(val==="OK"){checkPin();}
+else if(entered.length<4){entered+=val;}
+updateDots();
+}
+
+function updateDots(){
+document.getElementById("pinDots").innerText=
+entered.padEnd(4,"-");
+}
+
+function checkPin(){
+if(entered===pin){
+document.getElementById("lockScreen").style.display="none";
+}else{
+attempts++;
+if(attempts>=3){
+lockedUntil=Date.now()+60000;
+alert("Blokada 60s");
+}
+}
+entered="";
+updateDots();
+}
+
+renderKeypad();
+
+/* SETTINGS PIN */
+
+function changePin(){
+let old=document.getElementById("oldPin").value;
+let nw=document.getElementById("newPin").value;
+if(old===pin && nw.length===4){
+pin=nw;
+localStorage.setItem("pin",pin);
+alert("PIN zmieniony");
+}else{
+alert("Błędne dane");
+}
+}
 
 /* ALARM */
+
+let alarmArmed=false;
 
 function arm(){
 alarmArmed=true;
 document.getElementById("alarmStatus").textContent="UZBROJONY";
 document.getElementById("alarmStatus").style.color="var(--red)";
-addLog("Uzbrojono system");
 }
 
 function requestDisarm(){
-pendingDisarm=true;
-document.getElementById("pinModal").style.display="flex";
-}
-
-function verifyPin(){
-let val=document.getElementById("pinInput").value;
-if(val===pin){
-alarmArmed=false;
-document.getElementById("alarmStatus").textContent="ROZBROJONY";
-document.getElementById("alarmStatus").style.color="var(--green)";
-addLog("Rozbrojono system");
-document.getElementById("pinModal").style.display="none";
-document.getElementById("pinInput").value="";
-}else{
-alert("Błędny PIN");
-}
+entered="";
+updateDots();
+document.getElementById("lockScreen").style.display="flex";
 }
 
 /* CAMERAS */
 
 let cameras=[
 "https://www.youtube.com/embed/21X5lGlDOfg",
-"https://www.youtube.com/embed/live_stream?channel=UC4R8DWoMoI7CAwX8_LjQHig",
 "https://www.youtube.com/embed/5qap5aO4i9A",
-"https://www.youtube.com/embed/jfKfPfyJRdk"
+"https://www.youtube.com/embed/jfKfPfyJRdk",
+"https://www.youtube.com/embed/live_stream?channel=UC4R8DWoMoI7CAwX8_LjQHig"
 ];
 
 function loadCameras(){
 let grid=document.getElementById("cameraGrid");
-grid.innerHTML="";
 cameras.forEach(url=>{
 let div=document.createElement("div");
 div.className="camera";
@@ -344,44 +394,25 @@ grid.appendChild(div);
 }
 loadCameras();
 
-/* LIGHTING TASMOTA */
+/* LIGHT */
 
 function lightOn(){
-let ip=document.getElementById("lightIp").value;
-fetch("http://"+ip+"/cm?cmnd=Power%20On");
-addLog("Światło ON");
+fetch("http://"+lightIp.value+"/cm?cmnd=Power%20On");
 }
-
 function lightOff(){
-let ip=document.getElementById("lightIp").value;
-fetch("http://"+ip+"/cm?cmnd=Power%20Off");
-addLog("Światło OFF");
+fetch("http://"+lightIp.value+"/cm?cmnd=Power%20Off");
 }
-
 function setBrightness(val){
-let ip=document.getElementById("lightIp").value;
-fetch("http://"+ip+"/cm?cmnd=Dimmer%20"+val);
-addLog("Jasność "+val+"%");
+fetch("http://"+lightIp.value+"/cm?cmnd=Dimmer%20"+val);
 }
 
-/* TAB SWITCH */
+/* TAB */
 
 function switchTab(id){
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
-
 document.querySelectorAll(".tabbar button").forEach(b=>b.classList.remove("active"));
-document.getElementById("tab-"+id).classList.add("active");
-}
-
-/* EXPORT */
-
-function exportLogs(){
-let blob=new Blob([logs.join("\n")],{type:"text/plain"});
-let a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="log.txt";
-a.click();
+event.target.classList.add("active");
 }
 
 </script>
