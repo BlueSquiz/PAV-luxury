@@ -57,24 +57,18 @@ font-size:22px;cursor:pointer;
 .key:active{background:var(--gold);color:black;}
 
 /* SECTIONS */
-.section{display:none;padding:20px;animation:fadeIn .4s ease;}
+.section{display:none;padding:20px;}
 .section.active{display:block;}
-@keyframes fadeIn{
-from{opacity:0;transform:translateY(10px)}
-to{opacity:1;transform:translateY(0)}
-}
 
-/* CARDS */
+/* CARD */
 .card{
 background:var(--card);
 border-radius:20px;
 padding:20px;margin-bottom:20px;
 border:1px solid rgba(212,175,55,0.2);
-box-shadow:0 0 30px rgba(212,175,55,0.05);
 }
 .card h2{color:var(--gold);margin-bottom:15px;}
 
-/* BUTTONS */
 button{
 background:var(--gold);
 border:none;padding:10px 15px;
@@ -93,51 +87,19 @@ border-top:1px solid rgba(255,255,255,.1);
 }
 .tabbar button{background:none;color:white;}
 .tabbar button.active{color:var(--gold);}
-
-/* CAMERA GRID */
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-}
-.camera{
-background:black;border-radius:15px;
-overflow:hidden;position:relative;
-}
-.camera iframe{width:100%;height:150px;border:none;}
-.camera .status{
-position:absolute;top:8px;right:8px;
-width:10px;height:10px;
-border-radius:50%;background:var(--green);
-}
-.camera.fullscreen{
-position:fixed;inset:0;z-index:999;
-}
-.camera.fullscreen iframe{height:100%;}
-
-/* INPUT */
-input{
-width:100%;padding:10px;
-border-radius:12px;border:none;
-margin-bottom:10px;background:#222;
-color:white;
-}
 </style>
 </head>
 <body>
 
-<!-- LOADER -->
 <div id="loader">
 <img src="https://i.imgur.com/8Qf4F6S.png" class="paw">
 </div>
 
-<!-- LOCK -->
 <div id="lockScreen">
 <div class="pinDisplay" id="pinDots">----</div>
 <div class="keypad" id="keypad"></div>
 </div>
 
-<!-- HOME -->
 <div id="home" class="section active">
 <div class="card">
 <h2>Alarm</h2>
@@ -147,26 +109,6 @@ color:white;
 </div>
 </div>
 
-<!-- CAMERAS -->
-<div id="cameras" class="section">
-<div class="card">
-<h2>Kamery</h2>
-<div class="grid" id="cameraGrid"></div>
-</div>
-</div>
-
-<!-- LIGHTING -->
-<div id="lighting" class="section">
-<div class="card">
-<h2>Oświetlenie</h2>
-<input placeholder="IP Tasmota" id="lightIp">
-<button onclick="lightOn()">ON</button>
-<button onclick="lightOff()">OFF</button>
-<input type="range" min="0" max="100" onchange="setBrightness(this.value)">
-</div>
-</div>
-
-<!-- SETTINGS -->
 <div id="settings" class="section">
 <div class="card">
 <h2>Zmień PIN</h2>
@@ -176,48 +118,60 @@ color:white;
 </div>
 </div>
 
-<!-- TABBAR -->
 <div class="tabbar">
-<button onclick="switchTab('home')" class="active">Home</button>
-<button onclick="switchTab('cameras')">Kamery</button>
-<button onclick="switchTab('lighting')">Światło</button>
-<button onclick="switchTab('settings')">Ustawienia</button>
+<button onclick="switchTab('home', this)" class="active">Home</button>
+<button onclick="switchTab('settings', this)">Ustawienia</button>
 </div>
 
 <script>
 
 /* LOADER */
 window.addEventListener("load",()=>{
-setTimeout(()=>{document.getElementById("loader").classList.add("fade");},1500);
+setTimeout(()=>{
+document.getElementById("loader").classList.add("fade");
+},1200);
 });
 
 /* PIN SYSTEM */
+let entered="";
 let attempts=0;
 let lockedUntil=0;
-let entered="";
 let currentPin=localStorage.getItem("pin")||"1234";
 
 function renderKeypad(){
 for(let i=1;i<=9;i++) createKey(i);
-createKey("C"); createKey(0); createKey("OK");
+createKey("C");
+createKey(0);
+createKey("OK");
 }
+
 function createKey(val){
 let d=document.createElement("div");
-d.className="key"; d.innerText=val;
-d.onclick=()=>pressKey(val);
+d.className="key";
+d.textContent=val;
+d.onclick=function(){ pressKey(val); };
 document.getElementById("keypad").appendChild(d);
 }
+
 function pressKey(val){
 if(Date.now()<lockedUntil)return;
-if(val==="C"){entered="";}
-else if(val==="OK"){checkPin();}
-else if(entered.length<4){entered+=val;}
+
+if(val==="C"){
+entered="";
+}else if(val==="OK"){
+checkPin();
+}else if(entered.length<4){
+entered+=val;
+}
+
 updateDots();
 }
+
 function updateDots(){
-document.getElementById("pinDots").innerText=
+document.getElementById("pinDots").textContent =
 entered.padEnd(4,"-");
 }
+
 function checkPin(){
 if(entered===currentPin){
 document.getElementById("lockScreen").style.display="none";
@@ -228,8 +182,10 @@ lockedUntil=Date.now()+60000;
 alert("Blokada 60 sekund");
 }
 }
-entered="";updateDots();
+entered="";
+updateDots();
 }
+
 renderKeypad();
 
 /* CHANGE PIN */
@@ -238,64 +194,41 @@ let old=document.getElementById("oldPin").value;
 let nw=document.getElementById("newPin").value;
 let stored=localStorage.getItem("pin")||"1234";
 
-if(old!==stored){alert("Zły stary PIN");return;}
-if(nw.length!==4 || isNaN(nw)){alert("PIN musi mieć 4 cyfry");return;}
+if(old!==stored){
+alert("Zły stary PIN");
+return;
+}
+if(nw.length!==4 || isNaN(nw)){
+alert("PIN musi mieć 4 cyfry");
+return;
+}
 
 localStorage.setItem("pin",nw);
 currentPin=nw;
 alert("PIN zmieniony");
+
 document.getElementById("oldPin").value="";
 document.getElementById("newPin").value="";
 }
 
 /* ALARM */
-let alarmArmed=false;
 function arm(){
-alarmArmed=true;
 document.getElementById("alarmStatus").textContent="UZBROJONY";
 document.getElementById("alarmStatus").style.color="var(--red)";
 }
 function requestDisarm(){
-entered="";updateDots();
+entered="";
+updateDots();
 document.getElementById("lockScreen").style.display="flex";
 }
 
-/* CAMERAS */
-let cameras=[
-"https://www.youtube.com/embed/21X5lGlDOfg",
-"https://www.youtube.com/embed/5qap5aO4i9A",
-"https://www.youtube.com/embed/jfKfPfyJRdk",
-"https://www.youtube.com/embed/live_stream?channel=UC4R8DWoMoI7CAwX8_LjQHig"
-];
-function loadCameras(){
-let grid=document.getElementById("cameraGrid");
-cameras.forEach(url=>{
-let div=document.createElement("div");
-div.className="camera";
-div.innerHTML="<span class='status'></span><iframe src='"+url+"'></iframe>";
-div.onclick=()=>div.classList.toggle("fullscreen");
-grid.appendChild(div);
-});
-}
-loadCameras();
-
-/* LIGHT */
-function lightOn(){
-fetch("http://"+lightIp.value+"/cm?cmnd=Power%20On");
-}
-function lightOff(){
-fetch("http://"+lightIp.value+"/cm?cmnd=Power%20Off");
-}
-function setBrightness(val){
-fetch("http://"+lightIp.value+"/cm?cmnd=Dimmer%20"+val);
-}
-
-/* TAB */
-function switchTab(id){
+/* TAB FIX */
+function switchTab(id, btn){
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
+
 document.querySelectorAll(".tabbar button").forEach(b=>b.classList.remove("active"));
-event.target.classList.add("active");
+btn.classList.add("active");
 }
 
 </script>
